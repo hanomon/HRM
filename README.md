@@ -21,6 +21,7 @@ Android 태블릿에서 NFC 태깅을 통해 직원들의 출퇴근을 관리하
 - [배포 가이드](#-프로덕션-배포)
 - [문제 해결](#-문제-해결)
 - [기여하기](#-기여)
+- **[NFC 통합 가이드](docs/NFC_INTEGRATION_GUIDE.md)** ⭐
 
 ## ✨ 주요 기능
 
@@ -885,6 +886,7 @@ chore: 빌드 업무 수정, 패키지 매니저 수정
 - [기여 가이드](CONTRIBUTING.md)
 - [커밋 메시지 가이드](docs/COMMIT_MESSAGES.md)
 - [개발자 문서](docs/README.md)
+- **[NFC 통합 가이드](docs/NFC_INTEGRATION_GUIDE.md)** ⭐ NFC 담당 개발자용
 
 ## 📄 라이선스
 
