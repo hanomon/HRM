@@ -981,3 +981,4 @@ GitHub Issues: https://github.com/hanomon/HRM/issues
 **최종 업데이트**: 2026-01-06  
 **버전**: 1.0.0
 
+

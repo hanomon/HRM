@@ -1,0 +1,46 @@
+name: Keep Render Server Alive
+
+on:
+  schedule:
+    # 매 5분마다 실행 (UTC 기준)
+    # Render 무료 티어는 15분 비활성 시 Sleep 모드로 전환되므로
+    # 5분 간격으로 Health Check를 수행하여 서버를 깨어있게 유지
+    - cron: '*/5 * * * *'
+  
+  # 수동으로도 실행 가능
+  workflow_dispatch:
+
+jobs:
+  ping-backend:
+    name: Ping Backend Health Endpoint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping Backend Health Check
+        run: |
+          echo "🏓 Pinging backend health endpoint..."
+          
+          # Backend Health Check
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://hrm-backend-1dk5.onrender.com/api/health)
+          
+          if [ $response -eq 200 ]; then
+            echo "✅ Backend is alive! (HTTP $response)"
+          else
+            echo "⚠️  Backend returned HTTP $response (may be waking up)"
+          fi
+          
+          echo "🎉 Keep-alive ping completed at $(date)"
+      
+      - name: Ping Frontend (Optional)
+        run: |
+          echo "🏓 Pinging frontend..."
+          
+          # Frontend 체크 (선택사항)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://hrm-frontend-3tph.onrender.com)
+          
+          if [ $response -eq 200 ]; then
+            echo "✅ Frontend is alive! (HTTP $response)"
+          else
+            echo "⚠️  Frontend returned HTTP $response"
+          fi
+

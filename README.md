@@ -751,6 +751,7 @@ CMD ["npm", "start"]
 - [ ] **자동 생성된 테스트 데이터 확인** (직원 3명)
 - [ ] 직원 등록 및 조회 테스트
 - [ ] **서버 재시작 후 데이터 유지 확인** ✅
+- [ ] **Sleep Mode 방지 설정** (UptimeRobot 또는 GitHub Actions) ⚡
 - [ ] (선택) Android 태블릿에서 NFC 테스트
 
 ## 🔒 보안 고려사항
@@ -758,11 +759,96 @@ CMD ["npm", "start"]
 1. **HTTPS 필수**: Web NFC API는 HTTPS 환경에서만 작동
 2. **NFC ID 보안**: 카드 분실 시 즉시 시스템에서 삭제
 3. **인증/권한**: 프로덕션에서는 관리자 인증 기능 추가 권장
-4. **데이터 백업**: 정기적으로 SQLite DB 파일 백업
+4. **데이터 백업**: 
+   - **Render**: PostgreSQL 자동 백업 제공 (일일 백업)
+   - **로컬**: `pg_dump` 명령어로 정기 백업
+   - 예시: `pg_dump -U postgres hrm_db > backup_$(date +%Y%m%d).sql`
 5. **CORS 설정**: Backend에서 허용할 도메인 제한
 6. **입력 검증**: 모든 사용자 입력에 대한 검증 필수
+7. **환경변수 보안**: `.env` 파일은 절대 Git에 커밋하지 말 것
+8. **DATABASE_URL 보호**: 프로덕션 DB 연결 문자열 노출 금지
 
 ## 🐛 문제 해결
+
+### 서버 Sleep Mode 문제 (Render 무료 티어)
+
+**문제**: 15분 동안 트래픽이 없으면 서버가 자동으로 슬립 모드로 전환되어, 다음 요청 시 30초~1분 정도 지연 발생
+
+**해결 방법 1: 외부 Ping 서비스 사용 (추천 ⭐)**
+
+1. **UptimeRobot** (무료, 5분 간격 체크)
+   - [UptimeRobot](https://uptimerobot.com/) 가입
+   - "Add New Monitor" 클릭
+   - Monitor Type: `HTTP(s)`
+   - URL: `https://hrm-backend-1dk5.onrender.com/api/health`
+   - Monitoring Interval: `5 minutes` (무료 플랜)
+   - ✅ 5분마다 자동으로 서버를 깨워줍니다!
+
+2. **Cron-job.org** (무료, 1분 간격 가능)
+   - [Cron-job.org](https://cron-job.org/) 가입
+   - "Create cronjob" 클릭
+   - URL: `https://hrm-backend-1dk5.onrender.com/api/health`
+   - Execution schedule: `Every 5 minutes`
+   - ✅ 더 짧은 간격으로 체크 가능!
+
+**해결 방법 2: GitHub Actions (무료)**
+
+프로젝트에 `.github/workflows/keep-alive.yml` 생성:
+
+```yaml
+name: Keep Render Alive
+
+on:
+  schedule:
+    # 5분마다 실행 (UTC 기준)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Backend
+        run: |
+          curl -f https://hrm-backend-1dk5.onrender.com/api/health || exit 0
+          echo "Backend is alive!"
+```
+
+**해결 방법 3: Frontend에서 주기적 Health Check**
+
+`frontend/src/App.tsx`에 추가:
+
+```typescript
+// App 컴포넌트 내부
+useEffect(() => {
+  // 5분마다 Health Check
+  const keepAlive = setInterval(async () => {
+    try {
+      await fetch(`${API_BASE_URL}/health`);
+      console.log('Backend keepalive ping sent');
+    } catch (error) {
+      console.warn('Backend keepalive failed:', error);
+    }
+  }, 5 * 60 * 1000); // 5분
+
+  return () => clearInterval(keepAlive);
+}, []);
+```
+
+> ⚠️ **주의사항**:
+> - Frontend 방식은 사용자가 브라우저를 열어둬야만 작동
+> - **UptimeRobot 또는 GitHub Actions 사용을 강력히 권장**
+
+**비교표:**
+
+| 방법 | 비용 | 설정 난이도 | 신뢰도 | 최소 간격 |
+|------|------|------------|--------|----------|
+| **UptimeRobot** | 무료 | ⭐ 쉬움 | ⭐⭐⭐⭐⭐ | 5분 |
+| **Cron-job.org** | 무료 | ⭐ 쉬움 | ⭐⭐⭐⭐⭐ | 1분 |
+| **GitHub Actions** | 무료 | ⭐⭐ 보통 | ⭐⭐⭐⭐ | 5분 |
+| **Frontend Ping** | 무료 | ⭐⭐⭐ 복잡 | ⭐⭐ 낮음 | 제한 없음 |
+
+---
 
 ### NFC가 작동하지 않는 경우
 
