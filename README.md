@@ -887,6 +887,7 @@ chore: 빌드 업무 수정, 패키지 매니저 수정
 - [커밋 메시지 가이드](docs/COMMIT_MESSAGES.md)
 - [개발자 문서](docs/README.md)
 - **[NFC 통합 가이드](docs/NFC_INTEGRATION_GUIDE.md)** ⭐ NFC 담당 개발자용
+- **[테스트 시나리오](docs/TEST_SCENARIOS.md)** 🧪 QA 테스트 가이드
 
 ## 📄 라이선스
 
