@@ -9,6 +9,9 @@ Android 태블릿에서 NFC 태깅을 통해 직원들의 출퇴근을 관리하
 - **Backend API**: [https://hrm-backend-1dk5.onrender.com/api](https://hrm-backend-1dk5.onrender.com/api)
 - **Health Check**: [https://hrm-backend-1dk5.onrender.com/api/health](https://hrm-backend-1dk5.onrender.com/api/health)
 
+> 🔄 **최신 업데이트**: SQLite → **PostgreSQL** 마이그레이션 완료!  
+> ✅ 데이터 영구 저장, 서버 재시작해도 데이터 유지
+
 ## 📋 목차
 - [주요 기능](#-주요-기능)
 - [빠른 시작](#-빠른-시작)
@@ -54,6 +57,7 @@ Android 태블릿에서 NFC 태깅을 통해 직원들의 출퇴근을 관리하
 
 ### 전제 조건
 - **Node.js** v18 이상 설치 필요
+- **PostgreSQL** (로컬 개발 시) 또는 Render 무료 PostgreSQL
 - **Android 태블릿** (NFC 지원, Chrome 브라우저)
 - **NFC 카드** (직원용)
 
@@ -104,7 +108,7 @@ cd ../frontend
 npm install
 ```
 
-### 2단계: 환경변수 설정 (선택사항)
+### 2단계: 환경변수 설정
 
 Backend 디렉토리에 `.env` 파일 생성:
 
@@ -116,10 +120,18 @@ cd backend
 ```env
 PORT=3000
 NODE_ENV=development
-DATABASE_PATH=./attendance.db
+DATABASE_URL=postgres://postgres:password@localhost:5432/hrm_db
+FRONTEND_URL=http://localhost:5173
 ```
 
-> 💡 기본값으로도 작동하므로 `.env` 파일은 선택사항입니다.
+> 💡 **PostgreSQL 로컬 설정:**
+> ```bash
+> # Docker 사용 (추천)
+> docker run --name hrm-postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres
+> 
+> # 데이터베이스 생성
+> docker exec -it hrm-postgres psql -U postgres -c "CREATE DATABASE hrm_db;"
+> ```
 
 ### 3단계: 데이터베이스 초기화 및 테스트 데이터 생성
 
@@ -343,8 +355,8 @@ simulateTagging();
 | Node.js | 서버 런타임 |
 | Express | 웹 프레임워크 |
 | TypeScript | 타입 안정성 |
-| SQLite | 데이터베이스 |
-| better-sqlite3 | SQLite 드라이버 |
+| **PostgreSQL** | **데이터베이스 (영구 저장)** |
+| **pg** | **PostgreSQL 드라이버** |
 | XLSX | Excel 파일 생성 |
 
 ### Frontend
@@ -365,7 +377,7 @@ HRM/
 ├── backend/                    # Backend API 서버
 │   ├── src/
 │   │   ├── config/
-│   │   │   └── database.ts    # SQLite 데이터베이스 설정
+│   │   │   └── database.ts    # PostgreSQL 연결 풀 설정
 │   │   ├── models/
 │   │   │   ├── employee.ts    # 직원 모델
 │   │   │   └── attendance.ts  # 출퇴근 모델
@@ -376,9 +388,9 @@ HRM/
 │   │   │   ├── employees.ts   # 직원 API 라우트
 │   │   │   ├── attendance.ts  # 출퇴근 API 라우트
 │   │   │   └── seed.ts        # 테스트 데이터 생성 API
-│   │   ├── seed.ts            # 테스트 데이터 생성 스크립트
+│   │   ├── seed.ts            # 테스트 데이터 생성 스크립트 (CLI)
 │   │   └── index.ts           # 서버 진입점
-│   ├── attendance.db          # SQLite 데이터베이스
+│   ├── .env.example           # 환경변수 예시
 │   ├── package.json
 │   └── tsconfig.json
 │
@@ -406,18 +418,21 @@ HRM/
 
 ## 🗄️ 데이터베이스 스키마
 
+### 데이터베이스: PostgreSQL
+**영구 저장소로 데이터 보존 보장**
+
 ### employees (직원)
 ```sql
 CREATE TABLE employees (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  nfc_id TEXT UNIQUE NOT NULL,      -- NFC 카드 ID
-  name TEXT NOT NULL,                -- 이름
-  department TEXT,                   -- 부서
-  position TEXT,                     -- 직책
-  email TEXT,                        -- 이메일
-  phone TEXT,                        -- 전화번호
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  id SERIAL PRIMARY KEY,
+  nfc_id VARCHAR(255) UNIQUE NOT NULL,      -- NFC 카드 ID
+  name VARCHAR(255) NOT NULL,               -- 이름
+  department VARCHAR(255),                  -- 부서
+  position VARCHAR(255),                    -- 직책
+  email VARCHAR(255),                       -- 이메일
+  phone VARCHAR(50),                        -- 전화번호
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_nfc_id ON employees(nfc_id);
@@ -426,19 +441,25 @@ CREATE INDEX idx_nfc_id ON employees(nfc_id);
 ### attendance_records (출퇴근 기록)
 ```sql
 CREATE TABLE attendance_records (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  employee_id INTEGER NOT NULL,     -- 직원 ID (FK)
-  nfc_id TEXT NOT NULL,             -- NFC 카드 ID
-  tag_type TEXT NOT NULL            -- 'check_in' 또는 'check_out'
+  id SERIAL PRIMARY KEY,
+  employee_id INTEGER NOT NULL,            -- 직원 ID (FK)
+  nfc_id VARCHAR(255) NOT NULL,            -- NFC 카드 ID
+  tag_type VARCHAR(50) NOT NULL            -- 'check_in' 또는 'check_out'
     CHECK(tag_type IN ('check_in', 'check_out')),
-  tag_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  tag_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_employee_id ON attendance_records(employee_id);
 CREATE INDEX idx_tag_time ON attendance_records(tag_time);
 ```
+
+> ✅ **PostgreSQL 장점:**
+> - 데이터 영구 보존 (서버 재시작해도 유지)
+> - 프로덕션 환경에 최적화
+> - 자동 백업 (Render 제공)
+> - 동시 접속 처리 우수
 
 ## 🔌 API 엔드포인트
 
@@ -565,6 +586,7 @@ Content-Type: application/json
 
 | 서비스 | URL | 상태 |
 |--------|-----|------|
+| **PostgreSQL** | hrm-database | ✅ 운영 중 (영구 저장) |
 | Frontend | [hrm-frontend-3tph.onrender.com](https://hrm-frontend-3tph.onrender.com) | ✅ 운영 중 |
 | Backend API | [hrm-backend-1dk5.onrender.com](https://hrm-backend-1dk5.onrender.com/api) | ✅ 운영 중 |
 | Health Check | [/api/health](https://hrm-backend-1dk5.onrender.com/api/health) | ✅ 정상 |
@@ -572,20 +594,23 @@ Content-Type: application/json
 ### 배포 아키텍처
 
 ```
-┌─────────────────────────────────────────────────┐
-│  Render Platform (render.yaml)                   │
-├─────────────────────────────────────────────────┤
-│                                                   │
-│  ┌─────────────────┐      ┌──────────────────┐ │
-│  │  Frontend       │      │  Backend         │ │
-│  │  (Vite Preview) │─────▶│  (Express API)   │ │
-│  │  Port: 4173     │      │  Port: 3000      │ │
-│  └─────────────────┘      └──────────────────┘ │
-│          │                         │            │
-│          │                    ┌────▼─────┐     │
-│          │                    │ SQLite DB │     │
-│          │                    └──────────┘     │
-└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│  Render Platform (render.yaml)                       │
+├─────────────────────────────────────────────────────┤
+│                                                       │
+│  ┌─────────────────┐      ┌──────────────────┐     │
+│  │  Frontend       │      │  Backend         │     │
+│  │  (Vite Preview) │─────▶│  (Express API)   │     │
+│  │  Port: 4173     │      │  Port: 3000      │     │
+│  └─────────────────┘      └────────┬─────────┘     │
+│                                     │                │
+│                            ┌────────▼──────────┐    │
+│                            │  PostgreSQL DB    │    │
+│                            │  (영구 저장소)     │    │
+│                            │  - 자동 백업       │    │
+│                            │  - 데이터 보존     │    │
+│                            └───────────────────┘    │
+└─────────────────────────────────────────────────────┘
 ```
 
 ### Backend 배포 상세
@@ -599,9 +624,12 @@ Content-Type: application/json
 ```env
 PORT=3000
 NODE_ENV=production
-DATABASE_PATH=./attendance.db
+DATABASE_URL=<자동 주입 - PostgreSQL 연결 문자열>
 FRONTEND_URL=https://hrm-frontend-3tph.onrender.com
 ```
+
+> 💡 **DATABASE_URL은 자동 설정됩니다:**
+> `render.yaml`에서 PostgreSQL과 자동 연결되도록 구성되어 있습니다.
 
 **빌드 스크립트:**
 ```bash
@@ -635,6 +663,14 @@ npm run preview    # Vite 프리뷰 서버 (프로덕션 모드)
 이 프로젝트는 `render.yaml` Blueprint를 사용하여 **모노레포 자동 배포**를 구현했습니다:
 
 ```yaml
+databases:
+  # PostgreSQL 데이터베이스
+  - name: hrm-database
+    plan: free
+    databaseName: hrm_db
+    user: hrm_user
+    region: singapore
+
 services:
   # Backend 서비스
   - type: web
@@ -643,6 +679,11 @@ services:
     rootDir: backend
     buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hrm-database
+          property: connectionString  # 자동 주입!
     
   # Frontend 서비스
   - type: web
@@ -655,8 +696,9 @@ services:
 
 **장점:**
 - ✅ GitHub에 Push만 하면 자동 배포
-- ✅ Backend와 Frontend 동시 배포
+- ✅ Backend, Frontend, **PostgreSQL** 동시 배포
 - ✅ 환경변수 자동 주입
+- ✅ **데이터 영구 보존**
 - ✅ 무료 플랜으로 시작 가능
 
 ### 다른 플랫폼에 배포하기
@@ -702,11 +744,13 @@ CMD ["npm", "start"]
 
 ### 배포 후 체크리스트
 
+- [ ] **PostgreSQL 데이터베이스 생성 확인**
 - [ ] Backend Health Check 확인 (`/api/health`)
 - [ ] Frontend 접속 확인
 - [ ] CORS 오류 없이 API 호출 가능한지 확인
-- [ ] Seed API로 테스트 데이터 생성
+- [ ] **자동 생성된 테스트 데이터 확인** (직원 3명)
 - [ ] 직원 등록 및 조회 테스트
+- [ ] **서버 재시작 후 데이터 유지 확인** ✅
 - [ ] (선택) Android 태블릿에서 NFC 테스트
 
 ## 🔒 보안 고려사항
@@ -745,20 +789,25 @@ if ('NDEFReader' in window) {
 
 **문제**: 데이터베이스가 손상되었거나 초기화가 필요함
 
-**해결 방법:**
+**해결 방법 (로컬 개발):**
 ```bash
 # Backend 디렉토리에서
 cd backend
 
-# 데이터베이스 파일 삭제
-rm attendance.db
+# PostgreSQL 데이터베이스 재생성
+docker exec -it hrm-postgres psql -U postgres -c "DROP DATABASE IF EXISTS hrm_db;"
+docker exec -it hrm-postgres psql -U postgres -c "CREATE DATABASE hrm_db;"
 
-# 서버 재시작 (데이터베이스 자동 재생성)
+# 서버 재시작 (테이블 자동 생성)
 npm run dev
 
 # 테스트 데이터 추가
 npm run seed -- --force
 ```
+
+**프로덕션 환경 (Render):**
+- Render 대시보드 → Database → "Reset Database"
+- 또는 Seed API 사용: `POST /api/seed`
 
 ### 포트 충돌
 
@@ -815,6 +864,16 @@ app.use(cors({
 
 ### 개발 모드에서 사용 가능한 스크립트
 
+**PostgreSQL 로컬 설정 (최초 1회):**
+```bash
+# Docker로 PostgreSQL 시작
+docker run --name hrm-postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres
+
+# 데이터베이스 생성
+docker exec -it hrm-postgres psql -U postgres -c "CREATE DATABASE hrm_db;"
+```
+
+**개발 스크립트:**
 ```bash
 # 루트 디렉토리
 npm run dev              # Backend + Frontend 동시 실행
@@ -827,7 +886,7 @@ npm run build            # Backend + Frontend 빌드
 npm run dev              # 개발 서버 (nodemon)
 npm run build            # TypeScript 컴파일
 npm start                # 프로덕션 서버
-npm run seed             # 테스트 데이터 생성
+npm run seed             # 테스트 데이터 생성 (PostgreSQL)
 
 # Frontend 디렉토리
 npm run dev              # 개발 서버 (Vite)
@@ -840,15 +899,24 @@ npm run lint             # ESLint 검사
 
 **Backend (`backend/.env`)**
 ```env
-PORT=3000                # 서버 포트
-NODE_ENV=development     # 환경 (development/production)
-DATABASE_PATH=./attendance.db
-FRONTEND_URL=http://localhost:5173
+PORT=3000                                              # 서버 포트
+NODE_ENV=development                                   # 환경 (development/production)
+DATABASE_URL=postgres://postgres:password@localhost:5432/hrm_db  # PostgreSQL 연결
+FRONTEND_URL=http://localhost:5173                    # Frontend URL (CORS)
+```
+
+**프로덕션 (Render):**
+```env
+PORT=3000
+NODE_ENV=production
+DATABASE_URL=<자동 주입>  # render.yaml에서 자동 설정
+FRONTEND_URL=https://hrm-frontend-3tph.onrender.com
 ```
 
 **Frontend (Vite 환경변수)**
 ```env
-VITE_API_URL=http://localhost:3000/api  # Backend API URL
+VITE_API_URL=http://localhost:3000/api               # 로컬 개발
+VITE_API_URL=https://hrm-backend-1dk5.onrender.com/api  # 프로덕션
 ```
 
 ### Git 브랜치 전략
@@ -877,9 +945,11 @@ chore: 빌드 업무 수정, 패키지 매니저 수정
 - [Web NFC API 문서](https://developer.mozilla.org/en-US/docs/Web/API/Web_NFC_API)
 - [React 공식 문서](https://react.dev/)
 - [Express.js 문서](https://expressjs.com/)
-- [SQLite 문서](https://www.sqlite.org/docs.html)
+- [PostgreSQL 문서](https://www.postgresql.org/docs/)
+- [node-postgres (pg) 문서](https://node-postgres.com/)
 - [Vite 문서](https://vitejs.dev/)
 - [Render 배포 가이드](https://render.com/docs)
+- [Render PostgreSQL 가이드](https://render.com/docs/databases)
 
 ### 프로젝트 문서
 - [빠른 시작 가이드](QUICKSTART.md)
