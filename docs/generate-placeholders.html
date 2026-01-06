@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placeholder 이미지 생성기</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .placeholder {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        canvas {
+            display: block;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        .filename {
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Placeholder 이미지 생성기</h1>
+        
+        <div class="info">
+            <strong>💡 사용 방법:</strong><br>
+            1. 아래 버튼을 클릭하여 각 placeholder 이미지를 생성합니다.<br>
+            2. 이미지를 우클릭하여 "다른 이름으로 저장"을 선택합니다.<br>
+            3. <code>docs/images/</code> 폴더에 지정된 파일명으로 저장합니다.<br>
+            4. 실제 스크린샷이 준비되면 같은 이름으로 교체합니다.
+        </div>
+
+        <div id="placeholders"></div>
+        
+        <script>
+            const placeholders = [
+                { name: 'dashboard.png', title: '대시보드', width: 1200, height: 800 },
+                { name: 'nfc-tagging.png', title: 'NFC 태깅', width: 1200, height: 800 },
+                { name: 'employees.png', title: '직원 관리', width: 1200, height: 800 },
+                { name: 'add-employee.png', title: '직원 추가', width: 800, height: 600 },
+                { name: 'nfc-setup.png', title: 'NFC 설정', width: 1200, height: 800 },
+                { name: 'tag-success.png', title: '태깅 성공', width: 1200, height: 800 },
+                { name: 'export-excel.png', title: 'Excel 내보내기', width: 1200, height: 800 }
+            ];
+
+            const container = document.getElementById('placeholders');
+
+            placeholders.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'placeholder';
+                
+                const filename = document.createElement('div');
+                filename.className = 'filename';
+                filename.textContent = `📁 ${item.name}`;
+                div.appendChild(filename);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = item.width;
+                canvas.height = item.height;
+                canvas.style.width = '100%';
+                canvas.style.height = 'auto';
+                
+                const ctx = canvas.getContext('2d');
+                
+                // 배경
+                const gradient = ctx.createLinearGradient(0, 0, item.width, item.height);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, item.width, item.height);
+                
+                // 제목
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 60px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(item.title, item.width / 2, item.height / 2 - 30);
+                
+                // 해상도 정보
+                ctx.font = '30px Arial';
+                ctx.fillText(`${item.width} × ${item.height}`, item.width / 2, item.height / 2 + 40);
+                
+                // Placeholder 표시
+                ctx.font = 'italic 24px Arial';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.fillText('Placeholder Image', item.width / 2, item.height / 2 + 100);
+                
+                // 다운로드 버튼
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = `💾 ${item.name} 다운로드`;
+                downloadBtn.onclick = () => {
+                    const link = document.createElement('a');
+                    link.download = item.name;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                };
+                
+                div.appendChild(canvas);
+                div.appendChild(downloadBtn);
+                container.appendChild(div);
+
+                // 클릭으로도 다운로드 가능
+                canvas.onclick = () => downloadBtn.click();
+                canvas.title = '클릭하여 다운로드';
+            });
+
+            // 전체 다운로드 버튼
+            const downloadAllBtn = document.createElement('button');
+            downloadAllBtn.textContent = '📦 모든 이미지 다운로드';
+            downloadAllBtn.style.marginTop = '20px';
+            downloadAllBtn.style.fontSize = '16px';
+            downloadAllBtn.style.padding = '15px 30px';
+            downloadAllBtn.onclick = () => {
+                placeholders.forEach((item, index) => {
+                    setTimeout(() => {
+                        const canvas = document.querySelectorAll('canvas')[index];
+                        const link = document.createElement('a');
+                        link.download = item.name;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    }, index * 500); // 0.5초 간격으로 다운로드
+                });
+            };
+            container.appendChild(downloadAllBtn);
+        </script>
+    </div>
+</body>
+</html>
+

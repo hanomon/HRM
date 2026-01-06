@@ -1,0 +1,34 @@
+# Render Blueprint
+# Backend + Frontend 자동 배포 설정
+
+services:
+  # Backend API Server
+  - type: web
+    name: hrm-backend
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: ./attendance.db
+      - key: FRONTEND_URL
+        sync: false  # Manually set in Render dashboard
+
+  # Frontend Web App
+  - type: web
+    name: hrm-frontend
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview -- --port $PORT --host 0.0.0.0
+    envVars:
+      - key: VITE_API_URL
+        sync: false  # Set to Backend URL + /api
+
