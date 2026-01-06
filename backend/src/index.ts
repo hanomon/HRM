@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import employeeRoutes from './routes/employees';
 import attendanceRoutes from './routes/attendance';
 import seedRoutes from './routes/seed';
+import db from './config/database';
 
 dotenv.config();
 
@@ -63,8 +64,69 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: '서버 오류가 발생했습니다.' });
 });
 
-app.listen(PORT, () => {
+// 서버 시작 시 자동으로 테스트 데이터 생성 (프로덕션 환경에서만)
+async function initializeDatabase() {
+  try {
+    // 직원 수 확인
+    const employeeCount = db.prepare('SELECT COUNT(*) as count FROM employees').get() as { count: number };
+    
+    if (employeeCount.count === 0 && process.env.NODE_ENV === 'production') {
+      console.log('🌱 데이터베이스가 비어있습니다. 테스트 데이터를 생성합니다...');
+      
+      // Seed 데이터 생성 (seed.ts의 로직 재사용)
+      const sampleEmployees = [
+        {
+          nfc_id: '04:A1:B2:C3:D4:E5:F6',
+          name: '김철수',
+          department: '개발팀',
+          position: '팀장',
+          email: 'kim@company.com',
+          phone: '010-1234-5678'
+        },
+        {
+          nfc_id: '04:B2:C3:D4:E5:F6:A1',
+          name: '이영희',
+          department: '기획팀',
+          position: '대리',
+          email: 'lee@company.com',
+          phone: '010-2345-6789'
+        },
+        {
+          nfc_id: '04:C3:D4:E5:F6:A1:B2',
+          name: '박민수',
+          department: '개발팀',
+          position: '사원',
+          email: 'park@company.com',
+          phone: '010-3456-7890'
+        }
+      ];
+
+      // 직원 추가
+      const employeeStmt = db.prepare(`
+        INSERT INTO employees (nfc_id, name, department, position, email, phone)
+        VALUES (@nfc_id, @name, @department, @position, @email, @phone)
+      `);
+
+      for (const employee of sampleEmployees) {
+        employeeStmt.run(employee);
+      }
+
+      console.log('✅ 테스트 데이터 생성 완료!');
+      console.log(`   - 직원 ${sampleEmployees.length}명 추가`);
+    } else if (employeeCount.count > 0) {
+      console.log(`✅ 기존 데이터 확인: 직원 ${employeeCount.count}명`);
+    }
+  } catch (error) {
+    console.error('❌ 데이터베이스 초기화 실패:', error);
+  }
+}
+
+app.listen(PORT, async () => {
   console.log(`🚀 서버가 포트 ${PORT}에서 실행중입니다.`);
   console.log(`📡 API: http://localhost:${PORT}/api`);
+  console.log(`🌍 환경: ${process.env.NODE_ENV || 'development'}`);
+  
+  // 데이터베이스 초기화
+  await initializeDatabase();
 });
 
