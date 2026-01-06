@@ -1,28 +1,33 @@
 import { Router, Request, Response } from 'express';
-import db from '../config/database';
+import pool from '../config/database';
 
 const router = Router();
 
 // 날짜 생성 헬퍼 함수 (지난 N일 전)
-function getDaysAgo(days: number, hours: number = 9, minutes: number = 0): string {
+function getDaysAgo(days: number, hours: number = 9, minutes: number = 0): Date {
   const date = new Date();
   date.setDate(date.getDate() - days);
   date.setHours(hours, minutes, 0, 0);
-  return date.toISOString().slice(0, 19).replace('T', ' ');
+  return date;
 }
 
 // Seed API 엔드포인트
 router.post('/', async (req: Request, res: Response) => {
+  const client = await pool.connect();
+  
   try {
     console.log('🌱 Seed API 호출됨');
 
+    await client.query('BEGIN');
+
     // 기존 데이터 확인
-    const existingCount = db.prepare('SELECT COUNT(*) as count FROM employees').get() as { count: number };
+    const countResult = await client.query('SELECT COUNT(*) as count FROM employees');
+    const existingCount = parseInt(countResult.rows[0].count);
     
-    if (existingCount.count > 0) {
+    if (existingCount > 0) {
       // 기존 데이터 삭제
-      db.prepare('DELETE FROM attendance_records').run();
-      db.prepare('DELETE FROM employees').run();
+      await client.query('DELETE FROM attendance_records');
+      await client.query('DELETE FROM employees');
       console.log('✅ 기존 데이터 삭제됨');
     }
 
@@ -55,24 +60,27 @@ router.post('/', async (req: Request, res: Response) => {
     ];
 
     // 직원 추가
-    const employeeStmt = db.prepare(`
-      INSERT INTO employees (nfc_id, name, department, position, email, phone)
-      VALUES (@nfc_id, @name, @department, @position, @email, @phone)
-    `);
-
     const employeeIds: { [key: string]: number } = {};
+    
     for (const employee of sampleEmployees) {
-      const result = employeeStmt.run(employee);
-      employeeIds[employee.nfc_id] = result.lastInsertRowid as number;
+      const result = await client.query(
+        `INSERT INTO employees (nfc_id, name, department, position, email, phone)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING id`,
+        [employee.nfc_id, employee.name, employee.department, employee.position, employee.email, employee.phone]
+      );
+      employeeIds[employee.nfc_id] = result.rows[0].id;
     }
 
     // 출퇴근 기록 생성
-    const records: Array<{
+    interface AttendanceRecord {
       employee_id: number;
       nfc_id: string;
       tag_type: 'check_in' | 'check_out';
-      tag_time: string;
-    }> = [];
+      tag_time: Date;
+    }
+    
+    const records: AttendanceRecord[] = [];
 
     // 지난 7일간의 데이터 생성
     for (let day = 6; day >= 0; day--) {
@@ -142,15 +150,16 @@ router.post('/', async (req: Request, res: Response) => {
     });
 
     // 출퇴근 기록 추가
-    const attendanceStmt = db.prepare(`
-      INSERT INTO attendance_records (employee_id, nfc_id, tag_type, tag_time)
-      VALUES (@employee_id, @nfc_id, @tag_type, @tag_time)
-    `);
-
     let checkInCount = 0;
     let checkOutCount = 0;
+    
     for (const record of records) {
-      attendanceStmt.run(record);
+      await client.query(
+        `INSERT INTO attendance_records (employee_id, nfc_id, tag_type, tag_time)
+         VALUES ($1, $2, $3, $4)`,
+        [record.employee_id, record.nfc_id, record.tag_type, record.tag_time]
+      );
+      
       if (record.tag_type === 'check_in') {
         checkInCount++;
       } else {
@@ -158,6 +167,8 @@ router.post('/', async (req: Request, res: Response) => {
       }
     }
 
+    await client.query('COMMIT');
+    
     console.log('✅ Seed 완료!');
 
     res.json({
@@ -171,14 +182,16 @@ router.post('/', async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
+    await client.query('ROLLBACK');
     console.error('❌ Seed 실패:', error);
     res.status(500).json({
       success: false,
       message: 'Seed 실행 중 오류가 발생했습니다.',
       error: error.message
     });
+  } finally {
+    client.release();
   }
 });
 
 export default router;
-

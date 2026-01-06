@@ -1,12 +1,12 @@
-import db from '../config/database';
+import pool from '../config/database';
 
 export interface AttendanceRecord {
   id?: number;
   employee_id: number;
   nfc_id: string;
   tag_type: 'check_in' | 'check_out';
-  tag_time?: string;
-  created_at?: string;
+  tag_time?: Date;
+  created_at?: Date;
 }
 
 export interface AttendanceWithEmployee extends AttendanceRecord {
@@ -16,7 +16,7 @@ export interface AttendanceWithEmployee extends AttendanceRecord {
 }
 
 export class AttendanceModel {
-  static getAll(startDate?: string, endDate?: string): AttendanceWithEmployee[] {
+  static async getAll(startDate?: string, endDate?: string): Promise<AttendanceWithEmployee[]> {
     let query = `
       SELECT 
         ar.*,
@@ -28,68 +28,73 @@ export class AttendanceModel {
     `;
     
     const params: any[] = [];
+    let paramCount = 1;
     
     if (startDate && endDate) {
-      query += ' WHERE DATE(ar.tag_time) BETWEEN ? AND ?';
+      query += ` WHERE DATE(ar.tag_time) BETWEEN $${paramCount++} AND $${paramCount++}`;
       params.push(startDate, endDate);
     } else if (startDate) {
-      query += ' WHERE DATE(ar.tag_time) >= ?';
+      query += ` WHERE DATE(ar.tag_time) >= $${paramCount++}`;
       params.push(startDate);
     } else if (endDate) {
-      query += ' WHERE DATE(ar.tag_time) <= ?';
+      query += ` WHERE DATE(ar.tag_time) <= $${paramCount++}`;
       params.push(endDate);
     }
     
     query += ' ORDER BY ar.tag_time DESC';
     
-    const stmt = db.prepare(query);
-    return stmt.all(...params) as AttendanceWithEmployee[];
+    const result = await pool.query(query, params);
+    return result.rows;
   }
 
-  static getByEmployeeId(employeeId: number, startDate?: string, endDate?: string): AttendanceRecord[] {
-    let query = 'SELECT * FROM attendance_records WHERE employee_id = ?';
+  static async getByEmployeeId(employeeId: number, startDate?: string, endDate?: string): Promise<AttendanceRecord[]> {
+    let query = 'SELECT * FROM attendance_records WHERE employee_id = $1';
     const params: any[] = [employeeId];
+    let paramCount = 2;
     
     if (startDate && endDate) {
-      query += ' AND DATE(tag_time) BETWEEN ? AND ?';
+      query += ` AND DATE(tag_time) BETWEEN $${paramCount++} AND $${paramCount++}`;
       params.push(startDate, endDate);
     } else if (startDate) {
-      query += ' AND DATE(tag_time) >= ?';
+      query += ` AND DATE(tag_time) >= $${paramCount++}`;
       params.push(startDate);
     } else if (endDate) {
-      query += ' AND DATE(tag_time) <= ?';
+      query += ` AND DATE(tag_time) <= $${paramCount++}`;
       params.push(endDate);
     }
     
     query += ' ORDER BY tag_time DESC';
     
-    const stmt = db.prepare(query);
-    return stmt.all(...params) as AttendanceRecord[];
+    const result = await pool.query(query, params);
+    return result.rows;
   }
 
-  static getLatestByEmployeeId(employeeId: number): AttendanceRecord | undefined {
-    const stmt = db.prepare(`
-      SELECT * FROM attendance_records 
-      WHERE employee_id = ? 
-      ORDER BY tag_time DESC 
-      LIMIT 1
-    `);
-    return stmt.get(employeeId) as AttendanceRecord | undefined;
+  static async getLatestByEmployeeId(employeeId: number): Promise<AttendanceRecord | null> {
+    const result = await pool.query(
+      `SELECT * FROM attendance_records 
+       WHERE employee_id = $1 
+       ORDER BY tag_time DESC 
+       LIMIT 1`,
+      [employeeId]
+    );
+    return result.rows[0] || null;
   }
 
-  static create(record: AttendanceRecord): number {
-    const stmt = db.prepare(`
-      INSERT INTO attendance_records (employee_id, nfc_id, tag_type, tag_time)
-      VALUES (@employee_id, @nfc_id, @tag_type, COALESCE(@tag_time, CURRENT_TIMESTAMP))
-    `);
-    const result = stmt.run(record);
-    return result.lastInsertRowid as number;
+  static async create(record: AttendanceRecord): Promise<number> {
+    const result = await pool.query(
+      `INSERT INTO attendance_records (employee_id, nfc_id, tag_type, tag_time)
+       VALUES ($1, $2, $3, COALESCE($4, CURRENT_TIMESTAMP))
+       RETURNING id`,
+      [record.employee_id, record.nfc_id, record.tag_type, record.tag_time || null]
+    );
+    return result.rows[0].id;
   }
 
-  static delete(id: number): boolean {
-    const stmt = db.prepare('DELETE FROM attendance_records WHERE id = ?');
-    const result = stmt.run(id);
-    return result.changes > 0;
+  static async delete(id: number): Promise<boolean> {
+    const result = await pool.query(
+      'DELETE FROM attendance_records WHERE id = $1',
+      [id]
+    );
+    return result.rowCount !== null && result.rowCount > 0;
   }
 }
-

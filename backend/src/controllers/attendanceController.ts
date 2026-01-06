@@ -3,10 +3,10 @@ import { AttendanceModel } from '../models/attendance';
 import { EmployeeModel } from '../models/employee';
 import * as XLSX from 'xlsx';
 
-export const getAllRecords = (req: Request, res: Response) => {
+export const getAllRecords = async (req: Request, res: Response) => {
   try {
     const { start_date, end_date } = req.query;
-    const records = AttendanceModel.getAll(
+    const records = await AttendanceModel.getAll(
       start_date as string,
       end_date as string
     );
@@ -17,12 +17,12 @@ export const getAllRecords = (req: Request, res: Response) => {
   }
 };
 
-export const getRecordsByEmployeeId = (req: Request, res: Response) => {
+export const getRecordsByEmployeeId = async (req: Request, res: Response) => {
   try {
     const employeeId = parseInt(req.params.employeeId);
     const { start_date, end_date } = req.query;
     
-    const records = AttendanceModel.getByEmployeeId(
+    const records = await AttendanceModel.getByEmployeeId(
       employeeId,
       start_date as string,
       end_date as string
@@ -34,7 +34,7 @@ export const getRecordsByEmployeeId = (req: Request, res: Response) => {
   }
 };
 
-export const createRecord = (req: Request, res: Response) => {
+export const createRecord = async (req: Request, res: Response) => {
   try {
     const { nfc_id } = req.body;
     
@@ -43,13 +43,13 @@ export const createRecord = (req: Request, res: Response) => {
     }
     
     // Find employee by NFC ID
-    const employee = EmployeeModel.getByNfcId(nfc_id);
+    const employee = await EmployeeModel.getByNfcId(nfc_id);
     if (!employee) {
       return res.status(404).json({ error: '등록되지 않은 NFC ID입니다.' });
     }
     
     // Get latest record to determine tag type
-    const latestRecord = AttendanceModel.getLatestByEmployeeId(employee.id!);
+    const latestRecord = await AttendanceModel.getLatestByEmployeeId(employee.id!);
     
     // Determine tag type based on latest record
     let tagType: 'check_in' | 'check_out' = 'check_in';
@@ -59,7 +59,7 @@ export const createRecord = (req: Request, res: Response) => {
     }
     
     // Create new record
-    const id = AttendanceModel.create({
+    const id = await AttendanceModel.create({
       employee_id: employee.id!,
       nfc_id,
       tag_type: tagType
@@ -79,10 +79,10 @@ export const createRecord = (req: Request, res: Response) => {
   }
 };
 
-export const deleteRecord = (req: Request, res: Response) => {
+export const deleteRecord = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
-    const success = AttendanceModel.delete(id);
+    const success = await AttendanceModel.delete(id);
     
     if (!success) {
       return res.status(404).json({ error: '기록을 찾을 수 없습니다.' });
@@ -95,10 +95,10 @@ export const deleteRecord = (req: Request, res: Response) => {
   }
 };
 
-export const exportToExcel = (req: Request, res: Response) => {
+export const exportToExcel = async (req: Request, res: Response) => {
   try {
     const { start_date, end_date } = req.query;
-    const records = AttendanceModel.getAll(
+    const records = await AttendanceModel.getAll(
       start_date as string,
       end_date as string
     );
@@ -143,4 +143,3 @@ export const exportToExcel = (req: Request, res: Response) => {
     res.status(500).json({ error: 'Excel 내보내기에 실패했습니다.' });
   }
 };
-

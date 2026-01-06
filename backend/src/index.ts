@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import employeeRoutes from './routes/employees';
 import attendanceRoutes from './routes/attendance';
 import seedRoutes from './routes/seed';
-import db from './config/database';
+import pool, { initializeDatabase } from './config/database';
 
 dotenv.config();
 
@@ -65,15 +65,16 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // 서버 시작 시 자동으로 테스트 데이터 생성 (프로덕션 환경에서만)
-async function initializeDatabase() {
+async function initializeProductionData() {
   try {
     // 직원 수 확인
-    const employeeCount = db.prepare('SELECT COUNT(*) as count FROM employees').get() as { count: number };
+    const result = await pool.query('SELECT COUNT(*) as count FROM employees');
+    const employeeCount = parseInt(result.rows[0].count);
     
-    if (employeeCount.count === 0 && process.env.NODE_ENV === 'production') {
+    if (employeeCount === 0 && process.env.NODE_ENV === 'production') {
       console.log('🌱 데이터베이스가 비어있습니다. 테스트 데이터를 생성합니다...');
       
-      // Seed 데이터 생성 (seed.ts의 로직 재사용)
+      // Seed 데이터 생성
       const sampleEmployees = [
         {
           nfc_id: '04:A1:B2:C3:D4:E5:F6',
@@ -102,19 +103,18 @@ async function initializeDatabase() {
       ];
 
       // 직원 추가
-      const employeeStmt = db.prepare(`
-        INSERT INTO employees (nfc_id, name, department, position, email, phone)
-        VALUES (@nfc_id, @name, @department, @position, @email, @phone)
-      `);
-
       for (const employee of sampleEmployees) {
-        employeeStmt.run(employee);
+        await pool.query(
+          `INSERT INTO employees (nfc_id, name, department, position, email, phone)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [employee.nfc_id, employee.name, employee.department, employee.position, employee.email, employee.phone]
+        );
       }
 
       console.log('✅ 테스트 데이터 생성 완료!');
       console.log(`   - 직원 ${sampleEmployees.length}명 추가`);
-    } else if (employeeCount.count > 0) {
-      console.log(`✅ 기존 데이터 확인: 직원 ${employeeCount.count}명`);
+    } else if (employeeCount > 0) {
+      console.log(`✅ 기존 데이터 확인: 직원 ${employeeCount}명`);
     }
   } catch (error) {
     console.error('❌ 데이터베이스 초기화 실패:', error);
@@ -127,6 +127,10 @@ app.listen(PORT, async () => {
   console.log(`🌍 환경: ${process.env.NODE_ENV || 'development'}`);
   
   // 데이터베이스 초기화
-  await initializeDatabase();
+  try {
+    await initializeDatabase();
+    await initializeProductionData();
+  } catch (error) {
+    console.error('❌ 초기화 중 오류 발생:', error);
+  }
 });
-

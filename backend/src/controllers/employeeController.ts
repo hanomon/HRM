@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { EmployeeModel } from '../models/employee';
 
-export const getAllEmployees = (req: Request, res: Response) => {
+export const getAllEmployees = async (req: Request, res: Response) => {
   try {
-    const employees = EmployeeModel.getAll();
+    const employees = await EmployeeModel.getAll();
     res.json(employees);
   } catch (error) {
     console.error('Error fetching employees:', error);
@@ -11,10 +11,10 @@ export const getAllEmployees = (req: Request, res: Response) => {
   }
 };
 
-export const getEmployeeById = (req: Request, res: Response) => {
+export const getEmployeeById = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
-    const employee = EmployeeModel.getById(id);
+    const employee = await EmployeeModel.getById(id);
     
     if (!employee) {
       return res.status(404).json({ error: '직원을 찾을 수 없습니다.' });
@@ -27,10 +27,10 @@ export const getEmployeeById = (req: Request, res: Response) => {
   }
 };
 
-export const getEmployeeByNfcId = (req: Request, res: Response) => {
+export const getEmployeeByNfcId = async (req: Request, res: Response) => {
   try {
     const { nfc_id } = req.params;
-    const employee = EmployeeModel.getByNfcId(nfc_id);
+    const employee = await EmployeeModel.getByNfcId(nfc_id);
     
     if (!employee) {
       return res.status(404).json({ error: 'NFC ID에 해당하는 직원을 찾을 수 없습니다.' });
@@ -43,7 +43,7 @@ export const getEmployeeByNfcId = (req: Request, res: Response) => {
   }
 };
 
-export const createEmployee = (req: Request, res: Response) => {
+export const createEmployee = async (req: Request, res: Response) => {
   try {
     const { nfc_id, name, department, position, email, phone } = req.body;
     
@@ -52,12 +52,12 @@ export const createEmployee = (req: Request, res: Response) => {
     }
     
     // Check if NFC ID already exists
-    const existing = EmployeeModel.getByNfcId(nfc_id);
+    const existing = await EmployeeModel.getByNfcId(nfc_id);
     if (existing) {
       return res.status(409).json({ error: '이미 등록된 NFC ID입니다.' });
     }
     
-    const id = EmployeeModel.create({
+    const id = await EmployeeModel.create({
       nfc_id,
       name,
       department,
@@ -66,7 +66,7 @@ export const createEmployee = (req: Request, res: Response) => {
       phone
     });
     
-    const employee = EmployeeModel.getById(id);
+    const employee = await EmployeeModel.getById(id);
     res.status(201).json(employee);
   } catch (error) {
     console.error('Error creating employee:', error);
@@ -74,25 +74,25 @@ export const createEmployee = (req: Request, res: Response) => {
   }
 };
 
-export const updateEmployee = (req: Request, res: Response) => {
+export const updateEmployee = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     const { nfc_id, name, department, position, email, phone } = req.body;
     
-    const employee = EmployeeModel.getById(id);
+    const employee = await EmployeeModel.getById(id);
     if (!employee) {
       return res.status(404).json({ error: '직원을 찾을 수 없습니다.' });
     }
     
     // Check if NFC ID is being changed and if it's already in use
     if (nfc_id && nfc_id !== employee.nfc_id) {
-      const existing = EmployeeModel.getByNfcId(nfc_id);
+      const existing = await EmployeeModel.getByNfcId(nfc_id);
       if (existing) {
         return res.status(409).json({ error: '이미 사용 중인 NFC ID입니다.' });
       }
     }
     
-    const success = EmployeeModel.update(id, {
+    const success = await EmployeeModel.update(id, {
       nfc_id,
       name,
       department,
@@ -105,7 +105,7 @@ export const updateEmployee = (req: Request, res: Response) => {
       return res.status(400).json({ error: '업데이트할 내용이 없습니다.' });
     }
     
-    const updatedEmployee = EmployeeModel.getById(id);
+    const updatedEmployee = await EmployeeModel.getById(id);
     res.json(updatedEmployee);
   } catch (error) {
     console.error('Error updating employee:', error);
@@ -113,10 +113,10 @@ export const updateEmployee = (req: Request, res: Response) => {
   }
 };
 
-export const deleteEmployee = (req: Request, res: Response) => {
+export const deleteEmployee = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
-    const success = EmployeeModel.delete(id);
+    const success = await EmployeeModel.delete(id);
     
     if (!success) {
       return res.status(404).json({ error: '직원을 찾을 수 없습니다.' });
@@ -128,4 +128,3 @@ export const deleteEmployee = (req: Request, res: Response) => {
     res.status(500).json({ error: '직원 삭제에 실패했습니다.' });
   }
 };
-
