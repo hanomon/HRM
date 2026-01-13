@@ -553,6 +553,102 @@ GET /api/attendance/export/excel?start_date=2024-01-01&end_date=2024-01-31
 DELETE /api/attendance/:id
 ```
 
+### 🏷️ NFC 출근 정보 API (신규!)
+
+#### GET: NFC ID로 직원 출근 정보 조회
+```http
+GET /api/info/:nfc_id
+```
+
+**예시:**
+```http
+GET /api/info/04:A1:B2:C3:D4:E5:F6
+```
+
+**응답 예시:**
+```json
+{
+  "success": true,
+  "employee": {
+    "id": 1,
+    "nfc_id": "04:A1:B2:C3:D4:E5:F6",
+    "name": "김철수",
+    "department": "개발팀",
+    "position": "팀장",
+    "email": "kim@company.com",
+    "phone": "010-1234-5678"
+  },
+  "today": {
+    "date": "2026-01-13",
+    "records": [
+      {
+        "id": 1,
+        "employee_id": 1,
+        "nfc_id": "04:A1:B2:C3:D4:E5:F6",
+        "tag_type": "check_in",
+        "tag_time": "2026-01-13T08:30:00.000Z"
+      }
+    ],
+    "check_in": {
+      "id": 1,
+      "tag_type": "check_in",
+      "tag_time": "2026-01-13T08:30:00.000Z"
+    },
+    "check_out": null,
+    "is_checked_in": true,
+    "is_checked_out": false
+  },
+  "monthly_stats": {
+    "total_days": 10,
+    "check_in_count": 10,
+    "check_out_count": 9,
+    "on_time_count": 8,
+    "late_count": 2
+  },
+  "recent_records": [
+    {
+      "id": 1,
+      "employee_id": 1,
+      "nfc_id": "04:A1:B2:C3:D4:E5:F6",
+      "tag_type": "check_in",
+      "tag_time": "2026-01-13T08:30:00.000Z"
+    }
+  ],
+  "last_tag": {
+    "type": "check_in",
+    "time": "2026-01-13T08:30:00.000Z"
+  }
+}
+```
+
+#### POST: NFC ID로 직원 출근 정보 조회 (Body 방식)
+```http
+POST /api/info
+Content-Type: application/json
+
+{
+  "nfc_id": "04:A1:B2:C3:D4:E5:F6"
+}
+```
+
+**응답**: GET 방식과 동일
+
+**에러 응답 (직원 없음):**
+```json
+{
+  "error": "NFC ID에 해당하는 직원을 찾을 수 없습니다.",
+  "nfc_id": "04:A1:B2:C3:D4:E5:F6"
+}
+```
+
+**사용 사례:**
+- 🏷️ NFC 태깅 시 화면에 직원 정보와 출근 현황 표시
+- 📊 실시간 출근 상태 확인
+- 📈 월간 출근 통계 표시
+- ⏰ 마지막 태그 시간 확인
+
+---
+
 ### 테스트 데이터 생성 API
 
 #### Seed 데이터 생성 (테스트용)

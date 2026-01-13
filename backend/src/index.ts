@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import employeeRoutes from './routes/employees';
 import attendanceRoutes from './routes/attendance';
 import seedRoutes from './routes/seed';
+import infoRoutes from './routes/info';
 import pool, { initializeDatabase } from './config/database';
 
 dotenv.config();
@@ -52,6 +53,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/employees', employeeRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/seed', seedRoutes);
+app.use('/api/info', infoRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
