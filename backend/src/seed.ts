@@ -3,7 +3,7 @@ import pool from './config/database';
 // Sample data for testing
 const sampleEmployees = [
   {
-    nfc_id: '04:A1:B2:C3:D4:E5:F6',
+    nfc_id: '04A1B2C3D4E5F6',
     name: '김철수',
     department: '개발팀',
     position: '팀장',
@@ -11,7 +11,7 @@ const sampleEmployees = [
     phone: '010-1234-5678'
   },
   {
-    nfc_id: '04:B2:C3:D4:E5:F6:A1',
+    nfc_id: '04B2C3D4E5F6A1',
     name: '이영희',
     department: '기획팀',
     position: '대리',
@@ -19,7 +19,7 @@ const sampleEmployees = [
     phone: '010-2345-6789'
   },
   {
-    nfc_id: '04:C3:D4:E5:F6:A1:B2',
+    nfc_id: '04C3D4E5F6A1B2',
     name: '박민수',
     department: '개발팀',
     position: '사원',
@@ -49,28 +49,28 @@ function generateAttendanceRecords(employeeIds: { [key: string]: number }) {
   for (let day = 6; day >= 0; day--) {
     // 김철수
     records.push({
-      employee_id: employeeIds['04:A1:B2:C3:D4:E5:F6'],
-      nfc_id: '04:A1:B2:C3:D4:E5:F6',
+      employee_id: employeeIds['04A1B2C3D4E5F6'],
+      nfc_id: '04A1B2C3D4E5F6',
       tag_type: 'check_in',
       tag_time: getDaysAgo(day, 8, 45 + Math.floor(Math.random() * 20)) // 8:45~9:05
     });
     records.push({
-      employee_id: employeeIds['04:A1:B2:C3:D4:E5:F6'],
-      nfc_id: '04:A1:B2:C3:D4:E5:F6',
+      employee_id: employeeIds['04A1B2C3D4E5F6'],
+      nfc_id: '04A1B2C3D4E5F6',
       tag_type: 'check_out',
       tag_time: getDaysAgo(day, 18, 30 + Math.floor(Math.random() * 30)) // 18:30~19:00
     });
 
     // 이영희
     records.push({
-      employee_id: employeeIds['04:B2:C3:D4:E5:F6:A1'],
-      nfc_id: '04:B2:C3:D4:E5:F6:A1',
+      employee_id: employeeIds['04B2C3D4E5F6A1'],
+      nfc_id: '04B2C3D4E5F6A1',
       tag_type: 'check_in',
       tag_time: getDaysAgo(day, 8, 50 + Math.floor(Math.random() * 15)) // 8:50~9:05
     });
     records.push({
-      employee_id: employeeIds['04:B2:C3:D4:E5:F6:A1'],
-      nfc_id: '04:B2:C3:D4:E5:F6:A1',
+      employee_id: employeeIds['04B2C3D4E5F6A1'],
+      nfc_id: '04B2C3D4E5F6A1',
       tag_type: 'check_out',
       tag_time: getDaysAgo(day, 18, 0 + Math.floor(Math.random() * 20)) // 18:00~18:20
     });
@@ -79,14 +79,14 @@ function generateAttendanceRecords(employeeIds: { [key: string]: number }) {
     const checkInHour = day === 2 ? 9 : 8;
     const checkInMinute = day === 2 ? 15 : 55;
     records.push({
-      employee_id: employeeIds['04:C3:D4:E5:F6:A1:B2'],
-      nfc_id: '04:C3:D4:E5:F6:A1:B2',
+      employee_id: employeeIds['04C3D4E5F6A1B2'],
+      nfc_id: '04C3D4E5F6A1B2',
       tag_type: 'check_in',
       tag_time: getDaysAgo(day, checkInHour, checkInMinute + Math.floor(Math.random() * 10))
     });
     records.push({
-      employee_id: employeeIds['04:C3:D4:E5:F6:A1:B2'],
-      nfc_id: '04:C3:D4:E5:F6:A1:B2',
+      employee_id: employeeIds['04C3D4E5F6A1B2'],
+      nfc_id: '04C3D4E5F6A1B2',
       tag_type: 'check_out',
       tag_time: getDaysAgo(day, 18, 10 + Math.floor(Math.random() * 25)) // 18:10~18:35
     });
@@ -94,20 +94,20 @@ function generateAttendanceRecords(employeeIds: { [key: string]: number }) {
 
   // 오늘은 출근만 기록 (퇴근 전)
   records.push({
-    employee_id: employeeIds['04:A1:B2:C3:D4:E5:F6'],
-    nfc_id: '04:A1:B2:C3:D4:E5:F6',
+    employee_id: employeeIds['04A1B2C3D4E5F6'],
+    nfc_id: '04A1B2C3D4E5F6',
     tag_type: 'check_in',
     tag_time: getDaysAgo(0, 8, 47)
   });
   records.push({
-    employee_id: employeeIds['04:B2:C3:D4:E5:F6:A1'],
-    nfc_id: '04:B2:C3:D4:E5:F6:A1',
+    employee_id: employeeIds['04B2C3D4E5F6A1'],
+    nfc_id: '04B2C3D4E5F6A1',
     tag_type: 'check_in',
     tag_time: getDaysAgo(0, 8, 52)
   });
   records.push({
-    employee_id: employeeIds['04:C3:D4:E5:F6:A1:B2'],
-    nfc_id: '04:C3:D4:E5:F6:A1:B2',
+    employee_id: employeeIds['04C3D4E5F6A1B2'],
+    nfc_id: '04C3D4E5F6A1B2',
     tag_type: 'check_in',
     tag_time: getDaysAgo(0, 8, 58)
   });

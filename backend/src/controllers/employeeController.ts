@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { EmployeeModel } from '../models/employee';
+import { normalizeNfcId, isValidNfcId } from '../utils/nfcUtils';
 
 export const getAllEmployees = async (req: Request, res: Response) => {
   try {
@@ -30,7 +31,13 @@ export const getEmployeeById = async (req: Request, res: Response) => {
 export const getEmployeeByNfcId = async (req: Request, res: Response) => {
   try {
     const { nfc_id } = req.params;
-    const employee = await EmployeeModel.getByNfcId(nfc_id);
+    const normalizedNfcId = normalizeNfcId(nfc_id);
+    
+    if (!isValidNfcId(normalizedNfcId)) {
+      return res.status(400).json({ error: '유효하지 않은 NFC ID 형식입니다.' });
+    }
+    
+    const employee = await EmployeeModel.getByNfcId(normalizedNfcId);
     
     if (!employee) {
       return res.status(404).json({ error: 'NFC ID에 해당하는 직원을 찾을 수 없습니다.' });
@@ -51,14 +58,21 @@ export const createEmployee = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'NFC ID와 이름은 필수입니다.' });
     }
     
+    // NFC ID 정규화
+    const normalizedNfcId = normalizeNfcId(nfc_id);
+    
+    if (!isValidNfcId(normalizedNfcId)) {
+      return res.status(400).json({ error: '유효하지 않은 NFC ID 형식입니다.' });
+    }
+    
     // Check if NFC ID already exists
-    const existing = await EmployeeModel.getByNfcId(nfc_id);
+    const existing = await EmployeeModel.getByNfcId(normalizedNfcId);
     if (existing) {
       return res.status(409).json({ error: '이미 등록된 NFC ID입니다.' });
     }
     
     const id = await EmployeeModel.create({
-      nfc_id,
+      nfc_id: normalizedNfcId,
       name,
       department,
       position,
@@ -84,16 +98,24 @@ export const updateEmployee = async (req: Request, res: Response) => {
       return res.status(404).json({ error: '직원을 찾을 수 없습니다.' });
     }
     
+    let normalizedNfcId = nfc_id;
+    
     // Check if NFC ID is being changed and if it's already in use
     if (nfc_id && nfc_id !== employee.nfc_id) {
-      const existing = await EmployeeModel.getByNfcId(nfc_id);
+      normalizedNfcId = normalizeNfcId(nfc_id);
+      
+      if (!isValidNfcId(normalizedNfcId)) {
+        return res.status(400).json({ error: '유효하지 않은 NFC ID 형식입니다.' });
+      }
+      
+      const existing = await EmployeeModel.getByNfcId(normalizedNfcId);
       if (existing) {
         return res.status(409).json({ error: '이미 사용 중인 NFC ID입니다.' });
       }
     }
     
     const success = await EmployeeModel.update(id, {
-      nfc_id,
+      nfc_id: normalizedNfcId,
       name,
       department,
       position,

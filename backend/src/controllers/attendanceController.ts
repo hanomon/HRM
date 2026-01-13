@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AttendanceModel } from '../models/attendance';
 import { EmployeeModel } from '../models/employee';
 import * as XLSX from 'xlsx';
+import { normalizeNfcId, isValidNfcId } from '../utils/nfcUtils';
 
 export const getAllRecords = async (req: Request, res: Response) => {
   try {
@@ -42,8 +43,15 @@ export const createRecord = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'NFC ID가 필요합니다.' });
     }
     
+    // NFC ID 정규화
+    const normalizedNfcId = normalizeNfcId(nfc_id);
+    
+    if (!isValidNfcId(normalizedNfcId)) {
+      return res.status(400).json({ error: '유효하지 않은 NFC ID 형식입니다.' });
+    }
+    
     // Find employee by NFC ID
-    const employee = await EmployeeModel.getByNfcId(nfc_id);
+    const employee = await EmployeeModel.getByNfcId(normalizedNfcId);
     if (!employee) {
       return res.status(404).json({ error: '등록되지 않은 NFC ID입니다.' });
     }
@@ -61,7 +69,7 @@ export const createRecord = async (req: Request, res: Response) => {
     // Create new record
     const id = await AttendanceModel.create({
       employee_id: employee.id!,
-      nfc_id,
+      nfc_id: normalizedNfcId,
       tag_type: tagType
     });
     
@@ -69,7 +77,7 @@ export const createRecord = async (req: Request, res: Response) => {
       id,
       employee_id: employee.id,
       employee_name: employee.name,
-      nfc_id,
+      nfc_id: normalizedNfcId,
       tag_type: tagType,
       message: tagType === 'check_in' ? '출근 처리되었습니다.' : '퇴근 처리되었습니다.'
     });

@@ -175,7 +175,7 @@ npm run dev:frontend
 3. **"직원 추가"** 버튼 클릭
 4. 직원 정보 입력:
    - **이름**: 직원 이름
-   - **NFC ID**: NFC 카드의 시리얼 번호 (예: `04:A1:B2:C3:D4:E5:F6`)
+   - **NFC ID**: NFC 카드의 시리얼 번호 (예: `04A1B2C3D4E5F6`)
    - **부서**: 소속 부서
    - **직책**: 직급/직책
    - **이메일**: 이메일 주소
@@ -184,9 +184,11 @@ npm run dev:frontend
 
 ![직원 추가 화면](docs/images/add-employee.png)
 
-> 💡 **NFC ID 찾는 방법**: 
-> - NFC 카드의 시리얼 번호 확인
-> - 또는 "NFC 태깅" 페이지에서 스캔하여 확인
+> 💡 **NFC ID 형식**: 
+> - 숫자와 알파벳(A-F) 조합만 허용 (예: `04A1B2C3D4E5F6`)
+> - 콜론(`:`) 제거된 형식 사용 ✅
+> - 입력 시 자동으로 정규화 처리
+> - NFC 카드의 시리얼 번호 확인 또는 "NFC 태깅" 페이지에서 스캔하여 확인
 
 ### 2️⃣ NFC 태깅 설정하기 (Android 태블릿)
 
@@ -283,7 +285,7 @@ curl -X POST http://localhost:3000/api/seed
 #### 👥 직원 3명
 | 이름 | 부서 | 직책 | NFC ID |
 |------|------|------|--------|
-| 김철수 | 개발팀 | 팀장 | `04:A1:B2:C3:D4:E5:F6` |
+| 김철수 | 개발팀 | 팀장 | `04A1B2C3D4E5F6` |
 | 이영희 | 기획팀 | 대리 | `04:B2:C3:D4:E5:F6:A1` |
 | 박민수 | 개발팀 | 사원 | `04:C3:D4:E5:F6:A1:B2` |
 
@@ -305,7 +307,7 @@ curl -X POST http://localhost:3000/api/seed
 fetch('https://hrm-backend-1dk5.onrender.com/api/attendance', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ nfc_id: '04:A1:B2:C3:D4:E5:F6' })
+  body: JSON.stringify({ nfc_id: '04A1B2C3D4E5F6' })
 })
 .then(res => res.json())
 .then(data => {
@@ -317,7 +319,7 @@ fetch('https://hrm-backend-1dk5.onrender.com/api/attendance', {
 fetch('http://localhost:3000/api/attendance', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ nfc_id: '04:A1:B2:C3:D4:E5:F6' })
+  body: JSON.stringify({ nfc_id: '04A1B2C3D4E5F6' })
 })
 .then(res => res.json())
 .then(data => console.log(data));
@@ -326,7 +328,7 @@ fetch('http://localhost:3000/api/attendance', {
 **여러 직원 연속 태깅 시뮬레이션:**
 ```javascript
 const employees = [
-  '04:A1:B2:C3:D4:E5:F6',  // 김철수
+  '04A1B2C3D4E5F6',  // 김철수
   '04:B2:C3:D4:E5:F6:A1',  // 이영희
   '04:C3:D4:E5:F6:A1:B2'   // 박민수
 ];
@@ -474,7 +476,7 @@ GET /api/employees
 [
   {
     "id": 1,
-    "nfc_id": "04:A1:B2:C3:D4:E5:F6",
+    "nfc_id": "04A1B2C3D4E5F6",
     "name": "김철수",
     "department": "개발팀",
     "position": "팀장",
@@ -490,7 +492,7 @@ POST /api/employees
 Content-Type: application/json
 
 {
-  "nfc_id": "04:A1:B2:C3:D4:E5:F6",
+  "nfc_id": "04A1B2C3D4E5F6",
   "name": "김철수",
   "department": "개발팀",
   "position": "팀장",
@@ -527,7 +529,7 @@ POST /api/attendance
 Content-Type: application/json
 
 {
-  "nfc_id": "04:A1:B2:C3:D4:E5:F6"
+  "nfc_id": "04A1B2C3D4E5F6"
 }
 ```
 
@@ -537,7 +539,7 @@ Content-Type: application/json
   "id": 123,
   "employee_id": 1,
   "employee_name": "김철수",
-  "nfc_id": "04:A1:B2:C3:D4:E5:F6",
+  "nfc_id": "04A1B2C3D4E5F6",
   "tag_type": "check_in",
   "message": "출근 처리되었습니다."
 }
@@ -555,6 +557,9 @@ DELETE /api/attendance/:id
 
 ### 🏷️ NFC 출근 정보 API (신규!)
 
+> **📌 NFC ID 형식**: `04A1B2C3D4E5F6` (콜론 없이 숫자와 알파벳만)  
+> API는 자동으로 콜론을 제거하고 정규화 처리합니다.
+
 #### GET: NFC ID로 직원 출근 정보 조회
 ```http
 GET /api/info/:nfc_id
@@ -562,7 +567,7 @@ GET /api/info/:nfc_id
 
 **예시:**
 ```http
-GET /api/info/04:A1:B2:C3:D4:E5:F6
+GET /api/info/04A1B2C3D4E5F6
 ```
 
 **응답 예시:**
@@ -571,7 +576,7 @@ GET /api/info/04:A1:B2:C3:D4:E5:F6
   "success": true,
   "employee": {
     "id": 1,
-    "nfc_id": "04:A1:B2:C3:D4:E5:F6",
+    "nfc_id": "04A1B2C3D4E5F6",
     "name": "김철수",
     "department": "개발팀",
     "position": "팀장",
@@ -584,7 +589,7 @@ GET /api/info/04:A1:B2:C3:D4:E5:F6
       {
         "id": 1,
         "employee_id": 1,
-        "nfc_id": "04:A1:B2:C3:D4:E5:F6",
+        "nfc_id": "04A1B2C3D4E5F6",
         "tag_type": "check_in",
         "tag_time": "2026-01-13T08:30:00.000Z"
       }
@@ -609,7 +614,7 @@ GET /api/info/04:A1:B2:C3:D4:E5:F6
     {
       "id": 1,
       "employee_id": 1,
-      "nfc_id": "04:A1:B2:C3:D4:E5:F6",
+      "nfc_id": "04A1B2C3D4E5F6",
       "tag_type": "check_in",
       "tag_time": "2026-01-13T08:30:00.000Z"
     }
@@ -627,7 +632,7 @@ POST /api/info
 Content-Type: application/json
 
 {
-  "nfc_id": "04:A1:B2:C3:D4:E5:F6"
+  "nfc_id": "04A1B2C3D4E5F6"
 }
 ```
 
@@ -637,7 +642,7 @@ Content-Type: application/json
 ```json
 {
   "error": "NFC ID에 해당하는 직원을 찾을 수 없습니다.",
-  "nfc_id": "04:A1:B2:C3:D4:E5:F6"
+  "nfc_id": "04A1B2C3D4E5F6"
 }
 ```
 

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { EmployeeModel } from '../models/employee';
 import { AttendanceModel } from '../models/attendance';
+import { normalizeNfcId, isValidNfcId } from '../utils/nfcUtils';
 
 /**
  * NFC ID로 직원의 출근 정보를 종합적으로 반환
@@ -12,13 +13,20 @@ import { AttendanceModel } from '../models/attendance';
 export const getInfoByNfcId = async (req: Request, res: Response) => {
   try {
     const { nfc_id } = req.params;
+    
+    // NFC ID 정규화
+    const normalizedNfcId = normalizeNfcId(nfc_id);
+    
+    if (!isValidNfcId(normalizedNfcId)) {
+      return res.status(400).json({ error: '유효하지 않은 NFC ID 형식입니다.' });
+    }
 
     // 1. 직원 정보 조회
-    const employee = await EmployeeModel.getByNfcId(nfc_id);
+    const employee = await EmployeeModel.getByNfcId(normalizedNfcId);
     if (!employee) {
       return res.status(404).json({ 
         error: 'NFC ID에 해당하는 직원을 찾을 수 없습니다.',
-        nfc_id 
+        nfc_id: normalizedNfcId 
       });
     }
 

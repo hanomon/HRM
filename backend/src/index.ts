@@ -79,7 +79,7 @@ async function initializeProductionData() {
       // Seed 데이터 생성
       const sampleEmployees = [
         {
-          nfc_id: '04:A1:B2:C3:D4:E5:F6',
+          nfc_id: '04A1B2C3D4E5F6',
           name: '김철수',
           department: '개발팀',
           position: '팀장',
@@ -87,7 +87,7 @@ async function initializeProductionData() {
           phone: '010-1234-5678'
         },
         {
-          nfc_id: '04:B2:C3:D4:E5:F6:A1',
+          nfc_id: '04B2C3D4E5F6A1',
           name: '이영희',
           department: '기획팀',
           position: '대리',
@@ -95,7 +95,7 @@ async function initializeProductionData() {
           phone: '010-2345-6789'
         },
         {
-          nfc_id: '04:C3:D4:E5:F6:A1:B2',
+          nfc_id: '04C3D4E5F6A1B2',
           name: '박민수',
           department: '개발팀',
           position: '사원',
