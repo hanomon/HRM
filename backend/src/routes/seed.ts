@@ -34,7 +34,7 @@ router.post('/', async (req: Request, res: Response) => {
     // 샘플 직원 데이터
     const sampleEmployees = [
       {
-        nfc_id: '04:A1:B2:C3:D4:E5:F6',
+        nfc_id: '04A1B2C3D4E5F6',
         name: '김철수',
         department: '개발팀',
         position: '팀장',
@@ -42,7 +42,7 @@ router.post('/', async (req: Request, res: Response) => {
         phone: '010-1234-5678'
       },
       {
-        nfc_id: '04:B2:C3:D4:E5:F6:A1',
+        nfc_id: '04B2C3D4E5F6A1',
         name: '이영희',
         department: '기획팀',
         position: '대리',
@@ -50,7 +50,7 @@ router.post('/', async (req: Request, res: Response) => {
         phone: '010-2345-6789'
       },
       {
-        nfc_id: '04:C3:D4:E5:F6:A1:B2',
+        nfc_id: '04C3D4E5F6A1B2',
         name: '박민수',
         department: '개발팀',
         position: '사원',
@@ -86,28 +86,28 @@ router.post('/', async (req: Request, res: Response) => {
     for (let day = 6; day >= 0; day--) {
       // 김철수
       records.push({
-        employee_id: employeeIds['04:A1:B2:C3:D4:E5:F6'],
-        nfc_id: '04:A1:B2:C3:D4:E5:F6',
+        employee_id: employeeIds['04A1B2C3D4E5F6'],
+        nfc_id: '04A1B2C3D4E5F6',
         tag_type: 'check_in',
         tag_time: getDaysAgo(day, 8, 45 + Math.floor(Math.random() * 20))
       });
       records.push({
-        employee_id: employeeIds['04:A1:B2:C3:D4:E5:F6'],
-        nfc_id: '04:A1:B2:C3:D4:E5:F6',
+        employee_id: employeeIds['04A1B2C3D4E5F6'],
+        nfc_id: '04A1B2C3D4E5F6',
         tag_type: 'check_out',
         tag_time: getDaysAgo(day, 18, 30 + Math.floor(Math.random() * 30))
       });
 
       // 이영희
       records.push({
-        employee_id: employeeIds['04:B2:C3:D4:E5:F6:A1'],
-        nfc_id: '04:B2:C3:D4:E5:F6:A1',
+        employee_id: employeeIds['04B2C3D4E5F6A1'],
+        nfc_id: '04B2C3D4E5F6A1',
         tag_type: 'check_in',
         tag_time: getDaysAgo(day, 8, 50 + Math.floor(Math.random() * 15))
       });
       records.push({
-        employee_id: employeeIds['04:B2:C3:D4:E5:F6:A1'],
-        nfc_id: '04:B2:C3:D4:E5:F6:A1',
+        employee_id: employeeIds['04B2C3D4E5F6A1'],
+        nfc_id: '04B2C3D4E5F6A1',
         tag_type: 'check_out',
         tag_time: getDaysAgo(day, 18, 0 + Math.floor(Math.random() * 20))
       });
@@ -116,14 +116,14 @@ router.post('/', async (req: Request, res: Response) => {
       const checkInHour = day === 2 ? 9 : 8;
       const checkInMinute = day === 2 ? 15 : 55;
       records.push({
-        employee_id: employeeIds['04:C3:D4:E5:F6:A1:B2'],
-        nfc_id: '04:C3:D4:E5:F6:A1:B2',
+        employee_id: employeeIds['04C3D4E5F6A1B2'],
+        nfc_id: '04C3D4E5F6A1B2',
         tag_type: 'check_in',
         tag_time: getDaysAgo(day, checkInHour, checkInMinute + Math.floor(Math.random() * 10))
       });
       records.push({
-        employee_id: employeeIds['04:C3:D4:E5:F6:A1:B2'],
-        nfc_id: '04:C3:D4:E5:F6:A1:B2',
+        employee_id: employeeIds['04C3D4E5F6A1B2'],
+        nfc_id: '04C3D4E5F6A1B2',
         tag_type: 'check_out',
         tag_time: getDaysAgo(day, 18, 10 + Math.floor(Math.random() * 25))
       });
@@ -131,20 +131,20 @@ router.post('/', async (req: Request, res: Response) => {
 
     // 오늘은 출근만 기록
     records.push({
-      employee_id: employeeIds['04:A1:B2:C3:D4:E5:F6'],
-      nfc_id: '04:A1:B2:C3:D4:E5:F6',
+      employee_id: employeeIds['04A1B2C3D4E5F6'],
+      nfc_id: '04A1B2C3D4E5F6',
       tag_type: 'check_in',
       tag_time: getDaysAgo(0, 8, 47)
     });
     records.push({
-      employee_id: employeeIds['04:B2:C3:D4:E5:F6:A1'],
-      nfc_id: '04:B2:C3:D4:E5:F6:A1',
+      employee_id: employeeIds['04B2C3D4E5F6A1'],
+      nfc_id: '04B2C3D4E5F6A1',
       tag_type: 'check_in',
       tag_time: getDaysAgo(0, 8, 52)
     });
     records.push({
-      employee_id: employeeIds['04:C3:D4:E5:F6:A1:B2'],
-      nfc_id: '04:C3:D4:E5:F6:A1:B2',
+      employee_id: employeeIds['04C3D4E5F6A1B2'],
+      nfc_id: '04C3D4E5F6A1B2',
       tag_type: 'check_in',
       tag_time: getDaysAgo(0, 8, 58)
     });
