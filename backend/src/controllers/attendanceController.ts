@@ -37,42 +37,54 @@ export const getRecordsByEmployeeId = async (req: Request, res: Response) => {
 
 export const createRecord = async (req: Request, res: Response) => {
   try {
-    const { nfc_id } = req.body;
-    
+    const { nfc_id, action } = req.body;
+
     if (!nfc_id) {
       return res.status(400).json({ error: 'NFC ID가 필요합니다.' });
     }
-    
+
+    // action 파라미터 검증 (있는 경우)
+    if (action && !['check_in', 'check_out'].includes(action)) {
+      return res.status(400).json({
+        error: '유효하지 않은 action입니다. check_in 또는 check_out만 허용됩니다.'
+      });
+    }
+
     // NFC ID 정규화
     const normalizedNfcId = normalizeNfcId(nfc_id);
-    
+
     if (!isValidNfcId(normalizedNfcId)) {
       return res.status(400).json({ error: '유효하지 않은 NFC ID 형식입니다.' });
     }
-    
+
     // Find employee by NFC ID
     const employee = await EmployeeModel.getByNfcId(normalizedNfcId);
     if (!employee) {
       return res.status(404).json({ error: '등록되지 않은 NFC ID입니다.' });
     }
-    
-    // Get latest record to determine tag type
-    const latestRecord = await AttendanceModel.getLatestByEmployeeId(employee.id!);
-    
-    // Determine tag type based on latest record
-    let tagType: 'check_in' | 'check_out' = 'check_in';
-    if (latestRecord) {
-      // If latest was check_in, next should be check_out
-      tagType = latestRecord.tag_type === 'check_in' ? 'check_out' : 'check_in';
+
+    // Determine tag type
+    let tagType: 'check_in' | 'check_out';
+
+    if (action) {
+      // action이 명시된 경우 해당 값 사용
+      tagType = action as 'check_in' | 'check_out';
+    } else {
+      // action이 없으면 기존 자동 판단 로직 사용 (하위 호환)
+      const latestRecord = await AttendanceModel.getLatestByEmployeeId(employee.id!);
+      tagType = 'check_in';
+      if (latestRecord) {
+        tagType = latestRecord.tag_type === 'check_in' ? 'check_out' : 'check_in';
+      }
     }
-    
+
     // Create new record
     const id = await AttendanceModel.create({
       employee_id: employee.id!,
       nfc_id: normalizedNfcId,
       tag_type: tagType
     });
-    
+
     res.status(201).json({
       id,
       employee_id: employee.id,

@@ -529,8 +529,26 @@ POST /api/attendance
 Content-Type: application/json
 
 {
-  "nfc_id": "04A1B2C3D4E5F6"
+  "nfc_id": "04A1B2C3D4E5F6",
+  "action": "check_in"
 }
+```
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|---------|------|------|------|
+| `nfc_id` | string | ✅ | NFC 카드 ID |
+| `action` | string | ❌ | `check_in` (출근) 또는 `check_out` (퇴근). 생략 시 자동 판단 |
+
+**요청 예시:**
+```javascript
+// 명시적 출근
+{ "nfc_id": "04A1B2C3D4E5F6", "action": "check_in" }
+
+// 명시적 퇴근
+{ "nfc_id": "04A1B2C3D4E5F6", "action": "check_out" }
+
+// 자동 판단 (기존 방식, 하위 호환)
+{ "nfc_id": "04A1B2C3D4E5F6" }
 ```
 
 **응답 예시:**
@@ -542,6 +560,13 @@ Content-Type: application/json
   "nfc_id": "04A1B2C3D4E5F6",
   "tag_type": "check_in",
   "message": "출근 처리되었습니다."
+}
+```
+
+**에러 응답 (잘못된 action):**
+```json
+{
+  "error": "유효하지 않은 action입니다. check_in 또는 check_out만 허용됩니다."
 }
 ```
 
