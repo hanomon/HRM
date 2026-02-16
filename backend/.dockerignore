@@ -1,0 +1,44 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# TypeScript
+*.ts
+!src/**/*.ts
+tsconfig.json
+
+# 로컬 데이터베이스 (SQLite)
+*.db
+*.db-shm
+*.db-wal
+
+# 환경 변수 파일
+.env
+.env.local
+.env.*.local
+
+# 개발 도구
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# 테스트
+test/
+tests/
+*.test.ts
+*.spec.ts
+
+# 문서
+README.md
+docs/
+
+# 기타
+.DS_Store
+Thumbs.db

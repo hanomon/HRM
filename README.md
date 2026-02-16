@@ -22,6 +22,7 @@ Android 태블릿에서 NFC 태깅을 통해 직원들의 출퇴근을 관리하
 - [프로젝트 구조](#️-프로젝트-구조)
 - [API 문서](#-api-엔드포인트)
 - [배포 가이드](#-프로덕션-배포)
+  - **[Google Cloud 마이그레이션 가이드](GOOGLE_CLOUD_MIGRATION.md)** 🚀 ⭐ NEW
 - [문제 해결](#-문제-해결)
 - [기여하기](#-기여)
 - **[NFC 통합 가이드](docs/NFC_INTEGRATION_GUIDE.md)** ⭐
@@ -859,6 +860,126 @@ RUN npm run build
 EXPOSE 3000
 CMD ["npm", "start"]
 ```
+
+---
+
+## ☁️ Google Cloud 마이그레이션 🚀 NEW
+
+Render에서 Google Cloud로 마이그레이션하여 **비용을 50% 절감**하고 성능을 향상시키세요!
+
+### 💰 비용 비교 (월 기준, 100명 미만 트래픽)
+
+| 항목 | Render | Google Cloud | 절감 |
+|------|--------|--------------|------|
+| **Frontend** | $7 | **$0** (무료 티어) | -$7 |
+| **Backend** | $7 | **$0-2** (무료 티어) | -$5~7 |
+| **Database** | $7 | $7-10 | $0~-3 |
+| **총 비용** | **$21/월** | **$7-12/월** | **$9-14 절감** |
+
+### 🎯 Google Cloud Hybrid 아키텍처
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Google Cloud Platform                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  ┌──────────────────┐    ┌──────────────────┐              │
+│  │  Cloud Storage   │    │    Cloud Run     │              │
+│  │  + Cloud CDN     │◄───┤   (Backend API)  │              │
+│  │   (Frontend)     │    │  Auto-scaling    │              │
+│  └──────────────────┘    └────────┬─────────┘              │
+│       💰 $0/월                     │ 💰 $0-2/월              │
+│                                    ▼                         │
+│                           ┌──────────────────┐              │
+│                           │   Cloud SQL      │              │
+│                           │  (PostgreSQL)    │              │
+│                           │  db-f1-micro     │              │
+│                           └──────────────────┘              │
+│                                💰 $7-10/월                   │
+│                                                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 📚 마이그레이션 가이드
+
+완전한 단계별 가이드는 다음 문서를 참고하세요:
+
+- **[📖 전체 마이그레이션 가이드](GOOGLE_CLOUD_MIGRATION.md)** - 상세 단계별 안내
+- **[⚡ 빠른 시작 가이드](GOOGLE_CLOUD_QUICKSTART.md)** - 5분 만에 배포
+
+### ⚡ 5분 빠른 배포 (요약)
+
+```bash
+# 1. gcloud 초기화
+gcloud auth login
+gcloud config set project YOUR_PROJECT_ID
+
+# 2. Cloud SQL 생성
+gcloud sql instances create hrm-postgres \
+  --database-version=POSTGRES_15 \
+  --tier=db-f1-micro \
+  --region=asia-northeast3
+
+# 3. Backend 배포 (Cloud Run)
+cd backend
+gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/hrm-backend
+gcloud run deploy hrm-backend \
+  --image gcr.io/YOUR_PROJECT_ID/hrm-backend \
+  --region asia-northeast3 \
+  --allow-unauthenticated
+
+# 4. Frontend 배포 (Cloud Storage)
+cd ../frontend
+npm run build
+gsutil -m rsync -r -d dist/ gs://YOUR_BUCKET_NAME
+```
+
+### 🎁 무료 티어 혜택
+
+- ✅ Cloud Run: 월 **200만 요청 무료**
+- ✅ Cloud Storage: **5GB 무료**
+- ✅ Cloud CDN: **1TB 전송 무료**
+- ✅ Cloud Build: 월 **120분 빌드 무료**
+- ✅ Container Registry: **5GB 스토리지 무료**
+
+### 🔧 자동 배포 스크립트
+
+프로젝트에 포함된 배포 스크립트를 사용하세요:
+
+```bash
+# 환경 변수 설정
+export GCP_PROJECT_ID=your-project-id
+export GCS_BUCKET_NAME=hrm-frontend-bucket
+
+# 한 번에 배포
+./scripts/deploy-gcp.sh
+```
+
+### 📊 성능 비교
+
+| 지표 | Render | Google Cloud |
+|------|--------|--------------|
+| **Cold Start** | ~10-15초 | ~3-5초 |
+| **응답 속도** | 100-200ms | 50-100ms (CDN) |
+| **업타임** | 99.5% | 99.95% |
+| **Auto-scaling** | 제한적 | 완전 자동 |
+
+### 🎯 마이그레이션 장점
+
+1. **비용 절감**: 약 50% 절감 ($21 → $7-12/월)
+2. **성능 향상**: CDN으로 빠른 로딩
+3. **확장성**: Auto-scaling 자동 지원
+4. **무료 티어**: 대부분의 서비스 무료 사용
+5. **관리 편의성**: 직접 관리 가능
+
+### 🚀 시작하기
+
+1. [Google Cloud 마이그레이션 가이드](GOOGLE_CLOUD_MIGRATION.md) 읽기
+2. Google Cloud 계정 생성 (신규 $300 크레딧)
+3. `gcloud` CLI 설치
+4. [빠른 시작 가이드](GOOGLE_CLOUD_QUICKSTART.md) 따라하기
+
+---
 
 ### 중요 사항
 

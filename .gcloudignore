@@ -1,0 +1,48 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud. It follows the same syntax as .gitignore
+
+.gcloudignore
+.git
+.gitignore
+
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Local development
+.env
+.env.local
+.env.*.local
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Backend
+backend/node_modules/
+backend/dist/
+backend/*.db
+backend/*.db-shm
+backend/*.db-wal
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (optional - uncomment if you don't want to upload docs)
+# docs/
+# *.md
+
+# Tests
+test/
+tests/
+*.test.ts
+*.spec.ts
