@@ -17,6 +17,11 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   process.env.FRONTEND_URL || '',
+  // Google Cloud Storage (Frontend 정적 호스팅)
+  'https://storage.googleapis.com',
+  /^https:\/\/storage\.googleapis\.com$/,
+  // Cloud Run URL 패턴
+  /^https:\/\/.*\.run\.app$/,
   // Vercel 배포 URL 패턴 허용
   /^https:\/\/.*\.vercel\.app$/,
   // Render 배포 URL 패턴 허용
