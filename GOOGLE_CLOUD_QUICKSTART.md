@@ -1,6 +1,8 @@
 # ⚡ Google Cloud 빠른 시작 가이드 (5분)
 
 > 이미 Google Cloud 계정이 있고 빠르게 배포하고 싶으신 분들을 위한 간소화 가이드
+>
+> 💡 **CLI가 처음이신가요?** **[웹 콘솔 가이드](GOOGLE_CLOUD_WEB_GUIDE.md)** 추천! (클릭만으로 배포)
 
 ---
 

@@ -16,6 +16,7 @@ NFC 기반 근태관리 시스템의 모든 문서를 한 곳에서 찾을 수 �
    - 상세 설치 가이드
    - API 문서
    - 배포 가이드
+   - Google Cloud 마이그레이션 정보
 
 3. **[NFC 통합 가이드](NFC_INTEGRATION_GUIDE.md)** 📱 ⭐
    - NFC 하드웨어 담당 개발자용
@@ -263,34 +264,37 @@ lsof -ti:3000 | xargs kill -9
 
 ## 🚀 배포
 
-### Backend 배포
+### 현재 배포 환경
+- **플랫폼**: Render (PostgreSQL)
+- **Frontend**: https://hrm-frontend-3tph.onrender.com
+- **Backend**: https://hrm-backend-1dk5.onrender.com
 
-**추천 플랫폼:**
+### Google Cloud 마이그레이션 🚀 NEW
+
+**비용 50% 절감** ($21 → $7-12/월)
+
+**가이드 선택:**
+- **[🌐 웹 콘솔 가이드](../GOOGLE_CLOUD_WEB_GUIDE.md)** ⭐ **CLI 없이 배포** (초보자 추천!)
+- **[📖 전체 마이그레이션 가이드](../GOOGLE_CLOUD_MIGRATION.md)** - 상세 가이드
+- **[⚡ 빠른 시작](../GOOGLE_CLOUD_QUICKSTART.md)** - 5분 배포 (CLI)
+
+### 다른 플랫폼 배포
+
+**Backend 추천 플랫폼:**
 - Railway
 - Render
 - Heroku
+
+**Frontend 추천 플랫폼:**
+- Vercel (추천)
+- Netlify
 
 **환경변수:**
 ```env
 PORT=3000
 NODE_ENV=production
-DATABASE_PATH=./attendance.db
+DATABASE_URL=postgres://...
 ```
-
-### Frontend 배포
-
-**추천 플랫폼:**
-- Vercel (추천)
-- Netlify
-
-**빌드:**
-```bash
-cd frontend
-npm run build
-# dist 폴더를 배포
-```
-
-**주의**: API URL을 프로덕션 주소로 변경 필요
 
 ## 📝 코딩 컨벤션
 

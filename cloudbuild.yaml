@@ -58,7 +58,7 @@ steps:
       - '-c'
       - |
         cd frontend
-        npm ci
+        npm install
         npm run build
     
   # Step 5: Frontend를 Cloud Storage에 업로드

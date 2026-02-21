@@ -904,8 +904,9 @@ Render에서 Google Cloud로 마이그레이션하여 **비용을 50% 절감**�
 
 완전한 단계별 가이드는 다음 문서를 참고하세요:
 
+- **[🌐 웹 콘솔 가이드](GOOGLE_CLOUD_WEB_GUIDE.md)** ⭐ **CLI 없이 배포** (초보자 추천!)
 - **[📖 전체 마이그레이션 가이드](GOOGLE_CLOUD_MIGRATION.md)** - 상세 단계별 안내
-- **[⚡ 빠른 시작 가이드](GOOGLE_CLOUD_QUICKSTART.md)** - 5분 만에 배포
+- **[⚡ 빠른 시작 가이드](GOOGLE_CLOUD_QUICKSTART.md)** - 5분 만에 배포 (CLI)
 
 ### ⚡ 5분 빠른 배포 (요약)
 
@@ -974,10 +975,15 @@ export GCS_BUCKET_NAME=hrm-frontend-bucket
 
 ### 🚀 시작하기
 
-1. [Google Cloud 마이그레이션 가이드](GOOGLE_CLOUD_MIGRATION.md) 읽기
+**추천 순서 (초보자):**
+1. **[웹 콘솔 가이드](GOOGLE_CLOUD_WEB_GUIDE.md)** 읽기 ⭐ (CLI 없이 클릭만으로!)
 2. Google Cloud 계정 생성 (신규 $300 크레딧)
-3. `gcloud` CLI 설치
-4. [빠른 시작 가이드](GOOGLE_CLOUD_QUICKSTART.md) 따라하기
+3. 웹 브라우저에서 모든 작업 완료!
+
+**CLI 사용 (고급):**
+1. [Google Cloud 마이그레이션 가이드](GOOGLE_CLOUD_MIGRATION.md) 읽기
+2. `gcloud` CLI 설치
+3. [빠른 시작 가이드](GOOGLE_CLOUD_QUICKSTART.md) 따라하기
 
 ---
 
