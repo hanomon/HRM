@@ -388,7 +388,7 @@ cd frontend
 
 # Backend URL로 환경 변수 파일 생성
 # (위에서 복사한 Cloud Run URL 사용!)
-echo VITE_API_URL=https://hrm-backend-xxxxx-an.a.run.app/api > .env.production
+echo VITE_API_URL=https://hrm-backend-963205055442.asia-northeast3.run.app > .env.production
 
 # 빌드
 npm run build
