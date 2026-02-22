@@ -6,20 +6,26 @@ Android 태블릿에서 NFC 태깅을 통해 직원들의 출퇴근을 관리하
 
 ## 🌐 라이브 데모
 
-### ☁️ Google Cloud (현재 운영 중)
-- **Frontend**: [https://storage.googleapis.com/hrm-frontend-2024/index.html](https://storage.googleapis.com/hrm-frontend-2024/index.html)
+### 🔥 Firebase Hosting (현재 운영 중) ⭐
+- **Frontend**: [https://hrm-system-2024.web.app](https://hrm-system-2024.web.app)
+- **대시보드**: [https://hrm-system-2024.web.app/dashboard](https://hrm-system-2024.web.app/dashboard)
+- **직원 관리**: [https://hrm-system-2024.web.app/employees](https://hrm-system-2024.web.app/employees)
+- **NFC 태깅**: [https://hrm-system-2024.web.app/nfc](https://hrm-system-2024.web.app/nfc)
+
+### ☁️ Google Cloud Backend
 - **Backend API**: [https://hrm-backend-963205055442.asia-northeast3.run.app/api](https://hrm-backend-963205055442.asia-northeast3.run.app/api)
 - **Health Check**: [https://hrm-backend-963205055442.asia-northeast3.run.app/api/health](https://hrm-backend-963205055442.asia-northeast3.run.app/api/health)
 
-### 🔖 Render (이전 환경)
-- **Frontend**: [https://hrm-frontend-3tph.onrender.com](https://hrm-frontend-3tph.onrender.com)
-- **Backend API**: [https://hrm-backend-1dk5.onrender.com/api](https://hrm-backend-1dk5.onrender.com/api)
+### 🔖 이전 환경
+- **Render Frontend**: [https://hrm-frontend-3tph.onrender.com](https://hrm-frontend-3tph.onrender.com)
+- **Cloud Storage**: [https://storage.googleapis.com/hrm-frontend-2024/index.html](https://storage.googleapis.com/hrm-frontend-2024/index.html)
 
-> 🚀 **최신 업데이트**: Render → **Google Cloud** 마이그레이션 완료! (2026-02-22)
-> - ✅ Cloud Run (Backend) + Cloud Storage (Frontend) + Cloud SQL PostgreSQL 15
+> 🚀 **최신 업데이트**: Firebase Hosting 배포 완료! (2026-02-22)
+> - ✅ Firebase Hosting (Frontend) + Cloud Run (Backend) + Cloud SQL PostgreSQL 15
+> - ✅ 깔끔한 URL: `hrm-system-2024.web.app`
+> - ✅ BrowserRouter 지원 (`/dashboard`, `/employees` 직접 접속 가능)
 > - ✅ 기존 Render 데이터 마이그레이션 완료 (직원 9명, 출퇴근 기록 112건)
 > - ✅ 비용 50% 절감 ($21/월 → $7-10/월)
-> - ✅ 대시보드가 시작 페이지로 설정됨
 
 ## 📋 목차
 - [주요 기능](#-주요-기능)
@@ -722,7 +728,7 @@ Content-Type: application/json
 
 | 서비스 | URL | 상태 |
 |--------|-----|------|
-| **Frontend** | [storage.googleapis.com/hrm-frontend-2024/index.html](https://storage.googleapis.com/hrm-frontend-2024/index.html) | ✅ 운영 중 |
+| **Frontend** | [hrm-system-2024.web.app](https://hrm-system-2024.web.app) | ✅ 운영 중 |
 | **Backend API** | [hrm-backend-963205055442.asia-northeast3.run.app/api](https://hrm-backend-963205055442.asia-northeast3.run.app/api) | ✅ 운영 중 |
 | **Health Check** | [/api/health](https://hrm-backend-963205055442.asia-northeast3.run.app/api/health) | ✅ 정상 |
 | **Cloud SQL** | PostgreSQL 15 (db-f1-micro, asia-northeast3) | ✅ 운영 중 |
@@ -1006,8 +1012,9 @@ export GCS_BUCKET_NAME=hrm-frontend-bucket
 
 ### 🔧 주요 기술 변경사항
 
-- **Frontend**: `HashRouter` 적용 (Cloud Storage SPA 라우팅 지원)
-- **Frontend**: `base: './'` 설정 (Cloud Storage 정적 호스팅 호환)
+- **Frontend**: Firebase Hosting 배포 (`hrm-system-2024.web.app`)
+- **Frontend**: `BrowserRouter` 적용 (Firebase SPA 라우팅 지원)
+- **Frontend**: `base: './'` 설정 (정적 호스팅 호환)
 - **Frontend**: 대시보드를 시작 페이지로 설정
 - **Backend**: CORS에 `storage.googleapis.com` 추가
 - **Backend**: Multi-stage Dockerfile 적용 (이미지 크기 최소화)
