@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { attendanceApi } from '../services/api';
 import { NFCTagResponse } from '../types';
 
@@ -28,6 +29,7 @@ declare global {
 }
 
 function NFCTagPage() {
+  const navigate = useNavigate();
   const [isScanning, setIsScanning] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | 'info'>('info');
@@ -66,11 +68,10 @@ function NFCTagPage() {
           setLastTagged(response.data as any);
           setMessage(response.data.message || '태깅 성공!');
           setMessageType('success');
-          
-          // Auto-clear message after 3 seconds
+
+          // 3초 후 대시보드로 이동
           setTimeout(() => {
-            setMessage('NFC 태그를 스캔 중입니다...');
-            setMessageType('info');
+            navigate('/dashboard');
           }, 3000);
         } catch (error: any) {
           console.error('Tag processing error:', error);
