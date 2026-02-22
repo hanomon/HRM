@@ -5,12 +5,21 @@ Android 태블릿에서 NFC 태깅을 통해 직원들의 출퇴근을 관리하
 ![메인 화면](docs/images/dashboard.png)
 
 ## 🌐 라이브 데모
+
+### ☁️ Google Cloud (현재 운영 중)
+- **Frontend**: [https://storage.googleapis.com/hrm-frontend-2024/index.html](https://storage.googleapis.com/hrm-frontend-2024/index.html)
+- **Backend API**: [https://hrm-backend-963205055442.asia-northeast3.run.app/api](https://hrm-backend-963205055442.asia-northeast3.run.app/api)
+- **Health Check**: [https://hrm-backend-963205055442.asia-northeast3.run.app/api/health](https://hrm-backend-963205055442.asia-northeast3.run.app/api/health)
+
+### 🔖 Render (이전 환경)
 - **Frontend**: [https://hrm-frontend-3tph.onrender.com](https://hrm-frontend-3tph.onrender.com)
 - **Backend API**: [https://hrm-backend-1dk5.onrender.com/api](https://hrm-backend-1dk5.onrender.com/api)
-- **Health Check**: [https://hrm-backend-1dk5.onrender.com/api/health](https://hrm-backend-1dk5.onrender.com/api/health)
 
-> 🔄 **최신 업데이트**: SQLite → **PostgreSQL** 마이그레이션 완료!  
-> ✅ 데이터 영구 저장, 서버 재시작해도 데이터 유지
+> 🚀 **최신 업데이트**: Render → **Google Cloud** 마이그레이션 완료! (2026-02-22)
+> - ✅ Cloud Run (Backend) + Cloud Storage (Frontend) + Cloud SQL PostgreSQL 15
+> - ✅ 기존 Render 데이터 마이그레이션 완료 (직원 9명, 출퇴근 기록 112건)
+> - ✅ 비용 50% 절감 ($21/월 → $7-10/월)
+> - ✅ 대시보드가 시작 페이지로 설정됨
 
 ## 📋 목차
 - [주요 기능](#-주요-기능)
@@ -709,35 +718,36 @@ Content-Type: application/json
 
 ### 🚀 현재 배포된 환경
 
-이 프로젝트는 **Render**를 통해 배포되어 있습니다:
+이 프로젝트는 **Google Cloud**를 통해 배포되어 있습니다:
 
 | 서비스 | URL | 상태 |
 |--------|-----|------|
-| **PostgreSQL** | hrm-database | ✅ 운영 중 (영구 저장) |
-| Frontend | [hrm-frontend-3tph.onrender.com](https://hrm-frontend-3tph.onrender.com) | ✅ 운영 중 |
-| Backend API | [hrm-backend-1dk5.onrender.com](https://hrm-backend-1dk5.onrender.com/api) | ✅ 운영 중 |
-| Health Check | [/api/health](https://hrm-backend-1dk5.onrender.com/api/health) | ✅ 정상 |
+| **Frontend** | [storage.googleapis.com/hrm-frontend-2024/index.html](https://storage.googleapis.com/hrm-frontend-2024/index.html) | ✅ 운영 중 |
+| **Backend API** | [hrm-backend-963205055442.asia-northeast3.run.app/api](https://hrm-backend-963205055442.asia-northeast3.run.app/api) | ✅ 운영 중 |
+| **Health Check** | [/api/health](https://hrm-backend-963205055442.asia-northeast3.run.app/api/health) | ✅ 정상 |
+| **Cloud SQL** | PostgreSQL 15 (db-f1-micro, asia-northeast3) | ✅ 운영 중 |
 
 ### 배포 아키텍처
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  Render Platform (render.yaml)                       │
-├─────────────────────────────────────────────────────┤
-│                                                       │
-│  ┌─────────────────┐      ┌──────────────────┐     │
-│  │  Frontend       │      │  Backend         │     │
-│  │  (Vite Preview) │─────▶│  (Express API)   │     │
-│  │  Port: 4173     │      │  Port: 3000      │     │
-│  └─────────────────┘      └────────┬─────────┘     │
-│                                     │                │
-│                            ┌────────▼──────────┐    │
-│                            │  PostgreSQL DB    │    │
-│                            │  (영구 저장소)     │    │
-│                            │  - 자동 백업       │    │
-│                            │  - 데이터 보존     │    │
-│                            └───────────────────┘    │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                   Google Cloud Platform                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  ┌──────────────────────┐    ┌──────────────────────┐       │
+│  │   Cloud Storage      │    │      Cloud Run       │       │
+│  │  (Frontend 정적)     │───▶│   (Backend API)      │       │
+│  │  HashRouter + SPA    │    │   Express + Node.js  │       │
+│  │  💰 $0/월            │    │   💰 $0-2/월          │       │
+│  └──────────────────────┘    └──────────┬───────────┘       │
+│                                         │                    │
+│                               ┌─────────▼───────────┐       │
+│                               │     Cloud SQL        │       │
+│                               │  PostgreSQL 15       │       │
+│                               │  db-f1-micro         │       │
+│                               │  💰 $7-10/월          │       │
+│                               └─────────────────────┘       │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Backend 배포 상세
@@ -984,6 +994,24 @@ export GCS_BUCKET_NAME=hrm-frontend-bucket
 1. [Google Cloud 마이그레이션 가이드](GOOGLE_CLOUD_MIGRATION.md) 읽기
 2. `gcloud` CLI 설치
 3. [빠른 시작 가이드](GOOGLE_CLOUD_QUICKSTART.md) 따라하기
+
+### 📋 Google Cloud 구성 현황
+
+| 서비스 | 설정 | 월 비용 |
+|--------|------|--------|
+| **Cloud Storage** | `hrm-frontend-2024` (서울) | $0 |
+| **Cloud Run** | `hrm-backend` (서울, 최소 0인스턴스) | $0-2 |
+| **Cloud SQL** | `hrm-postgres-v3` PostgreSQL 15, db-f1-micro (서울) | $7-10 |
+| **합계** | | **$7-12/월** |
+
+### 🔧 주요 기술 변경사항
+
+- **Frontend**: `HashRouter` 적용 (Cloud Storage SPA 라우팅 지원)
+- **Frontend**: `base: './'` 설정 (Cloud Storage 정적 호스팅 호환)
+- **Frontend**: 대시보드를 시작 페이지로 설정
+- **Backend**: CORS에 `storage.googleapis.com` 추가
+- **Backend**: Multi-stage Dockerfile 적용 (이미지 크기 최소화)
+- **Database**: Cloud SQL PostgreSQL 15 (db-f1-micro, ENTERPRISE 에디션)
 
 ---
 
