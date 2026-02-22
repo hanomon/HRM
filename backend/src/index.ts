@@ -17,6 +17,10 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   process.env.FRONTEND_URL || '',
+  // Firebase Hosting
+  'https://hrm-system-2024.web.app',
+  'https://hrm-system-2024.firebaseapp.com',
+  /^https:\/\/.*\.web\.app$/,
   // Google Cloud Storage (Frontend 정적 호스팅)
   'https://storage.googleapis.com',
   /^https:\/\/storage\.googleapis\.com$/,
