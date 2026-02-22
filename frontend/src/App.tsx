@@ -1,4 +1,4 @@
-import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import NFCTagPage from './pages/NFCTagPage';
 import DashboardPage from './pages/DashboardPage';
 import EmployeesPage from './pages/EmployeesPage';
@@ -39,9 +39,10 @@ function App() {
 
         <main className="max-w-7xl mx-auto py-6 px-4">
           <Routes>
-            <Route path="/" element={<NFCTagPage />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/employees" element={<EmployeesPage />} />
+            <Route path="/nfc" element={<NFCTagPage />} />
           </Routes>
         </main>
       </div>
